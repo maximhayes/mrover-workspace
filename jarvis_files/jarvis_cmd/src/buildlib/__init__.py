@@ -1,7 +1,7 @@
 import hashlib
 import os
 import re
-import click
+import subprocess
 
 from contextlib import contextmanager
 
@@ -13,11 +13,12 @@ class BuildError(Exception):
 
 
 class Builder:
-    def __init__(self, wksp, dir_, name, **kwargs):
+    def __init__(self, wksp, dir_, name, deps, **kwargs):
         self.dir_ = dir_
         self.wksp = wksp
         self.full_path = os.path.join(wksp.root, self.dir_)
         self.name = name
+        self.dep_names = [d.replace('/', '_') for d in deps]
         self.params = kwargs
 
     def _hash_file(self, filepath, algo):
@@ -74,10 +75,17 @@ class Builder:
         return os.path.relpath(
                 os.path.join(root, name), self.full_path)
 
+    def _destination_file_path(self, relpath):
+        return relpath
+
+    def _mkdirs(self, intermediate):
+        pass
+
     @contextmanager
     def _intermediate(self):
         intermediate_dir = os.path.join(self.wksp.intermediate, self.name)
         ensure_dir(intermediate_dir)
+        self._mkdirs(intermediate_dir)
         for root, dirs, files in os.walk(
                 self.full_path, topdown=True, followlinks=False):
             if not re.search(r'/\.', root):
@@ -94,10 +102,14 @@ class Builder:
                             self.is_relevant_file(name)):
                         subtree_path = self._relpath(root, name)
                         intermediate_name = os.path.join(
-                                intermediate_dir, subtree_path)
+                                intermediate_dir,
+                                self._destination_file_path(subtree_path))
                         ln(os.path.join(root, name), intermediate_name)
         with cd(intermediate_dir):
             yield intermediate_dir
+
+    def configure(self, args):
+        pass
 
     def build(self):
         try:
@@ -106,8 +118,9 @@ class Builder:
                 with self._intermediate() as intermediate:
                     self._build(intermediate)
             self._save_hash()
-        except BuildError as e:
-            click.secho("BUILD FAILED: {}".format(str(e)))
+        except subprocess.CalledProcessError as e:
+            raise BuildError("command `{}` exited with status {}".format(
+                e.cmd, e.returncode))
 
     def _build(self, intermediate):
         raise BuildError("Not implemented")

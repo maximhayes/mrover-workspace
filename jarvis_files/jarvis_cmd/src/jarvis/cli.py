@@ -1,12 +1,12 @@
 import click
+import subprocess
 from click_didyoumean import DYMGroup
 import os
 import sys
 
 import buildlib
-import buildlib.python
 from .core import Workspace
-from . import building
+from . import building, third_party
 
 
 def search_for_workspace_root(start):
@@ -62,10 +62,10 @@ def build(workspace, project):
     build a project
     '''
     try:
+        third_party.install_deps(workspace)
         building.build(workspace, project)
-        click.secho('Done', fg='green')
     except buildlib.BuildError as e:
-        click.secho('error: {}'.format(str(e)))
+        click.secho('error: {}'.format(str(e)), fg='red', bold=True)
         sys.exit(1)
 
 
@@ -84,7 +84,12 @@ def dep(workspace):
     '''
     installs 3rdparty folder into product env
     '''
-    pass
+    try:
+        third_party.install_deps(workspace)
+        click.secho("Done installing third party deps", fg='green')
+    except buildlib.BuildError as e:
+        click.secho('error: {}'.format(str(e)), fg='red', bold=True)
+        sys.exit(1)
 
 
 @cli.command(short_help='runs a command')
@@ -96,18 +101,21 @@ def exec(workspace, command):
 
     The product env will be searched first, followed by the Jarvis env.
     '''
-    if os.path.exists(workspace.product_env):
-        executable = search_for_executable(os.path.join(
-            workspace.product_env, 'bin'), command[0])
-        if executable is not None:
-            workspace.product_exec(command)
-            return
+    try:
+        if os.path.exists(workspace.product_env):
+            executable = search_for_executable(os.path.join(
+                workspace.product_env, 'bin'), command[0])
+            if executable is not None:
+                workspace.product_exec(*command)
+                return
 
-    executable = search_for_executable(os.path.join(
-        workspace.jarvis_env, 'bin'), command[0])
-    if executable is not None:
-        workspace.jarvis_exec(command)
-        return
+        executable = search_for_executable(os.path.join(
+            workspace.jarvis_env, 'bin'), command[0])
+        if executable is not None:
+            workspace.jarvis_exec(*command)
+            return
+    except subprocess.CalledProcessError as e:
+        sys.exit(e.returncode)
 
     click.secho('error: cannot exec {}'.format(command), fg='red')
 

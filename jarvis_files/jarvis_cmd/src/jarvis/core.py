@@ -17,9 +17,11 @@ def exec_in_venv(env_path: T.Union[os.PathLike, str],
     click.secho('Activating venv...', dim=True)
     venv_bindir = os.path.join(env_path, 'bin')
     orig_path = os.environ['PATH']
+    orig_virtualenv = os.environ['VIRTUAL_ENV']
     try:
         new_path = '{}:{}'.format(venv_bindir, orig_path)
         os.environ['PATH'] = new_path
+        os.environ['VIRTUAL_ENV'] = env_path
         click.secho('exec {}'.format(command), dim=True)
         process = sp.run(
                 command,
@@ -29,6 +31,7 @@ def exec_in_venv(env_path: T.Union[os.PathLike, str],
         return process
     finally:
         os.environ['PATH'] = orig_path
+        os.environ['VIRTUAL_ENV'] = orig_virtualenv
 
 
 def shell(command: str, check=True, capture=False) -> sp.CompletedProcess:
@@ -99,10 +102,18 @@ def rm(path_: T.Union[os.PathLike, str]):
     Removes `path`
     """
     click.secho('$ rm "{}"'.format(path_), dim=True)
-    if os.path.isdir(path_):
+    if os.path.isdir(path_) and not os.path.islink(path_):
         shutil.rmtree(path_)
-    else:
+    elif os.path.exists(path_):
         os.unlink(path_)
+
+
+def mkdir(path_: T.Union[os.PathLike, str]):
+    """
+    Creates a directory.
+    """
+    if not os.path.exists(path_):
+        os.mkdir(path_)
 
 
 def ensure_dir(path_: T.Union[os.PathLike, str]):
@@ -153,6 +164,7 @@ class Workspace:
     def __init__(self, root_dir):
         self.root = root_dir
         self.build_root = os.path.join(os.path.expanduser('~'), '.mrover')
+        self.third_party_root = os.path.join(self.root, '3rdparty')
         self.product_env = os.path.join(self.build_root, 'build_env')
         self.jarvis_env = os.path.join(self.build_root, 'jarvis_env')
         self.hash_store = os.path.join(self.build_root, 'project_hashes')
@@ -169,18 +181,21 @@ class Workspace:
     def ensure_product_env(self):
         if not os.path.isdir(self.product_env):
             venv.create(self.product_env, symlinks=True, with_pip=True)
+            with quiet():
+                self.product_exec(
+                        'pip', 'install', '-r',
+                        os.path.join(
+                            self.root, 'jarvis_files', 'requirements-dev.txt'))
 
-    def product_exec(self, command, **kwargs):
-        try:
-            exec_in_venv(self.product_env, command, **kwargs)
-        except:
-            pass
+    def product_file_exists(self, *args):
+        return os.path.exists(
+                os.path.join(self.product_env, *args))
 
-    def jarvis_exec(self, command, **kwargs):
-        try:
-            exec_in_venv(self.jarvis_env, command, **kwargs)
-        except:
-            pass
+    def product_exec(self, *command, **kwargs):
+        return exec_in_venv(self.product_env, command, **kwargs)
+
+    def jarvis_exec(self, *command, **kwargs):
+        return exec_in_venv(self.jarvis_env, command, **kwargs)
 
     def clean(self):
         try:

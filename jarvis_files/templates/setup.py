@@ -4,7 +4,7 @@ setup(
     name="{{ component }}",
     version="0.1",
     author="MRover",
-    package_dir={'{{ component }}': 'src'},
+    package_dir={'': 'src'},
     packages=find_packages('src'),
 {% if executable %}
     entry_points={

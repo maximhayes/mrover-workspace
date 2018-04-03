@@ -23,6 +23,7 @@ make_jarvis_env() {
     source "${JARVIS_VENV}/bin/activate"
 	pip install --upgrade pip >/dev/null
     pip install -r "${JARVIS_ROOT}/requirements.txt" >/dev/null
+    pip install -r "${JARVIS_ROOT}/requirements-dev.txt" >/dev/null
     pip install -e "${JARVIS_ROOT}/jarvis_cmd" >/dev/null
 }
 
