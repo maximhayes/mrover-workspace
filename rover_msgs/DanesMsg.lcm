@@ -1,0 +1,6 @@
+package rover_msgs;
+
+struct DanesMsg {
+    int8_t test_var_code;
+    int32_t test_roundtrip;
+}
