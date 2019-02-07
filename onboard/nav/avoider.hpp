@@ -21,13 +21,15 @@ public:
 
     virtual Odometry createAvoidancePoint( Rover * mPhoebe, const double distance ) = 0;
 
-private:
+    virtual NavState executeTurnAroundObs( Rover* mPhoebe, const rapidjson::Document& mRoverConfig ) = 0;
+
+    virtual NavState executeDriveAroundObs( Rover* mPhoebe ) = 0;
+
+// private:
     /*************************************************************************/
     /* Private Member Functions */
     /*************************************************************************/
-    NavState executeTurnAroundObs( Rover* mPhoebe, const rapidjson::Document& mRoverConfig );
 
-    NavState executeDriveAroundObs( Rover* mPhoebe );
 
 protected:  // TODO
     /*************************************************************************/

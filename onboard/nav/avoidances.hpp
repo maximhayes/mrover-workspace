@@ -23,6 +23,10 @@ public:
 
     Odometry createAvoidancePoint( Rover * mPhoebe, const double distance );
 
+    NavState executeTurnAroundObs( Rover* mPhoebe, const rapidjson::Document& mRoverConfig );
+
+    NavState executeDriveAroundObs( Rover* mPhoebe );
+
     ~Original();
     
 };
