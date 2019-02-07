@@ -8,19 +8,6 @@
 #include <cmath>
 #include <stack>
 
-void reverseQueue(queue<Odometry>& Queue) //TODO
-{
-    stack<Odometry> Stack;
-    while (!Queue.empty()) {
-        Stack.push(Queue.front());
-        Queue.pop();
-    }
-    while (!Stack.empty()) {
-        Queue.push(Stack.top());
-        Stack.pop();
-    }
-}
-
 /*************************************************************************/
 /* Searcher Factory */
 /*************************************************************************/

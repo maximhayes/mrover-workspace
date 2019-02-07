@@ -3,6 +3,7 @@
 
 #include "rover.hpp"
 #include "searches.hpp"
+#include "avoidances.hpp"
 
 #include <lcm/lcm-cpp.hpp>
 #include <queue>
@@ -39,9 +40,15 @@ public:
 
     void updateCompletedPoints( );
 
-    void updateObstacleAngle( double angle );
+    void updateMissedWaypoints( );
+
+    Odometry frontSearchPoint( );
+
+    void popSearchPoint();
 
     void setSearcher(SearchType type);
+
+    void updateObstacleAngle( double obstacle );
 
 private:
     /*************************************************************************/
@@ -63,12 +70,6 @@ private:
 
     NavState executeDriveAroundObs();
 
-    void initializeSearch();
-
-    bool addFourPointsToSearch();
-
-    Odometry createAvoidancePoint( const double distance );
-
     /*************************************************************************/
     /* Private Member Variables */
     /*************************************************************************/
@@ -84,12 +85,6 @@ private:
     // Configuration file for the rover.
     rapidjson::Document mRoverConfig;
 
-    // Odometry point used when avoiding obstacles.
-    Odometry mObstacleAvoidancePoint;
-
-    // Initial angle to go around obstacle upon detection.
-    double mOriginalObstacleAngle;
-
     // Number of waypoints in course.
     unsigned mTotalWaypoints;
 
@@ -104,6 +99,9 @@ private:
 
     // Search pointer to control search states
     Searcher* mSearcher;
+
+    // Search pointer to control search states
+    Avoidance* mObstacle;
 
 }; // StateMachine
 
