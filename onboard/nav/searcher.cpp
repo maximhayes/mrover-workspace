@@ -7,20 +7,25 @@
 /*****************************************************/
 /* Funtions for StateMachine to access Search points */
 /*****************************************************/
+
+// Allows StateMachine to access search point
 Odometry Searcher::frontSearchPoint( )
 {
     return mSearchPoints.front();
 }
 
+// Allows StateMachine to remove front search point
 void Searcher::popSearchPoint( )
 {
     mSearchPoints.pop_front();
-    return;
 }
 
 /*****************************************************/
 /* Searcher Run Fuction */
 /*****************************************************/
+// Runs the state machine through one iteration. The state machine will
+// run when the rover is in a search state (called by StateMachine).
+// Will call the corresponding function based on the current state.
 NavState Searcher::run( Rover * mPhoebe, const rapidjson::Document& mRoverConfig )
 {
     switch ( mPhoebe->roverStatus().currentState() )
@@ -62,7 +67,7 @@ NavState Searcher::run( Rover * mPhoebe, const rapidjson::Document& mRoverConfig
 
         case NavState::DriveToBall:
         {
-            return executeDriveToBall( mPhoebe );
+            return executeDriveToBall( mPhoebe, mRoverConfig );
         }
 
         default:
@@ -225,17 +230,26 @@ NavState Searcher::executeTurnToBall( Rover * mPhoebe )
 
 // Executes the logic for driving to the tennis ball.
 // If the rover loses the ball, it starts the search again.
-// If the rover detects an obstacle, it proceeds to go around the obstacle.
+// If the rover detects an obstacle
+//    if rover can reach ball before obstacle, continue to ball
+//    else rover proceeds to go around the obstacle.
 // If the rover finishes driving to the ball, it moves on to the next Waypoint.
 // If the rover is on course, it keeps driving to the ball.
 // Else, it turns back to face the ball.
-NavState Searcher::executeDriveToBall( Rover * mPhoebe )
+NavState Searcher::executeDriveToBall( Rover * mPhoebe,
+ const rapidjson::Document& mRoverConfig )
 {
     if( !mPhoebe->roverStatus().tennisBall().found )
     {
         return NavState::SearchFaceNorth;
     }
-    if( mPhoebe->roverStatus().obstacle().detected )
+
+    double cvThresh = mRoverConfig[ "cvThresh" ].GetDouble();
+
+    if( mPhoebe->roverStatus().obstacle().detected and
+      ( cvThresh < mPhoebe->roverStatus().tennisBall().distance - 2 ) and 
+      ( ( mPhoebe->roverStatus().tennisBall().bearing < 0 && mPhoebe->roverStatus().obstacle().bearing > 0 ) or
+      ( mPhoebe->roverStatus().tennisBall().bearing > 0 && mPhoebe->roverStatus().obstacle().bearing < 0 ) ) )
     {
         stateMachine->updateObstacleAngle( mPhoebe->roverStatus().obstacle().bearing );
         return NavState::SearchTurnAroundObs;

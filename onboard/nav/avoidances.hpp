@@ -3,6 +3,7 @@
 
 #include "avoider.hpp"
 
+// This class is the representation of different avoidance algorithms
 enum class AvoidanceType
 {
     ORIGINAL,
@@ -21,11 +22,11 @@ public:
     Original( StateMachine* stateMachine_ ) 
     : Avoidance(stateMachine_) {}
 
-    Odometry createAvoidancePoint( Rover * mPhoebe, const double distance );
-
     NavState executeTurnAroundObs( Rover* mPhoebe, const rapidjson::Document& mRoverConfig );
 
     NavState executeDriveAroundObs( Rover* mPhoebe );
+
+    Odometry createAvoidancePoint( Rover * mPhoebe, const double distance );
 
     ~Original();
     

@@ -48,6 +48,36 @@ StateMachine::~StateMachine( )
     delete mPhoebe;
 }
 
+// Function to allow external objects to update completed points
+void StateMachine::updateCompletedPoints( )
+{
+    mCompletedWaypoints += 1;
+}
+
+// Allows external objects to change obstacle angle
+void StateMachine::updateObstacleAngle( double bearing ) 
+{
+    mObstacle->updateObstacleAngle( bearing );
+}
+
+// // Function to allow external objects to update missed waypoints
+// void StateMachine::updateMissedWaypoints( ) {
+//     mMissedWaypoints += 1;
+// }
+
+// Gives external objects access to search point
+Odometry StateMachine::frontSearchPoint( )
+{
+    return mSearcher->frontSearchPoint();
+}
+
+// Gives external objects ability to remove search point
+void StateMachine::popSearchPoint()
+{
+    mSearcher->popSearchPoint();
+}
+
+// Allows state machine to change search type
 void StateMachine::setSearcher( SearchType type )
 {
     assert( mSearcher );
@@ -55,33 +85,6 @@ void StateMachine::setSearcher( SearchType type )
     mSearcher = SearchFactory( this, type );
 }
 
-void StateMachine::updateCompletedPoints( )
-{
-    mCompletedWaypoints += 1;
-    return;
-}
-
-void StateMachine::updateMissedWaypoints( ) {
-    mMissedWaypoints += 1;
-    return;
-}
-
-Odometry StateMachine::frontSearchPoint( )
-{
-    return mSearcher->frontSearchPoint();
-}
-
-void StateMachine::popSearchPoint()
-{
-    mSearcher->popSearchPoint();
-    return;
-}
-
-void StateMachine::updateObstacleAngle( double bearing ) 
-{
-    mObstacle->updateObstacleAngle( bearing );
-    return;
-}
 // Runs the state machine through one iteration. The state machine will
 // run if the state has changed or if the rover's status has changed.
 // Will call the corresponding function based on the current state.
@@ -301,21 +304,29 @@ NavState StateMachine::executeTurn()
     return NavState::Turn;
 } // executeTurn()
 
-// Executes the logic for driving. If the rover is turned off, it
-// proceeds to Off. If the rover finishes driving, it either starts
-// searching for a tennis ball (dependent the search parameter of
-// the Waypoint) or it turns to the next Waypoint. If the rover
-// detects an obstacle, it goes to turn around it. Else the rover
-// keeps driving to the next Waypoint.
+// Executes the logic for driving. 
+// If the rover is turned off, it proceeds to Off. 
+// If the rover finishes driving, it either starts searching for a tennis ball 
+//   (dependent the search parameter of the Waypoint) 
+//    or it turns to the next Waypoint. 
+// If the rover detects an obstacle, 
+//     if rover can get to waypoint without avoiding obstacle, continue 
+//     else rover goes to turn around obstacle. 
+// Else the rover keeps driving to the next Waypoint.
 NavState StateMachine::executeDrive()
 {
-    if( mPhoebe->roverStatus().obstacle().detected )
+    const Waypoint& nextWaypoint = mPhoebe->roverStatus().path().front();    
+    double cvThresh = mRoverConfig[ "cvThresh" ].GetDouble();
+    double distance = estimateNoneuclid( mPhoebe->roverStatus().odometry(), nextWaypoint.odom );
+
+    if( mPhoebe->roverStatus().obstacle().detected and
+        ( cvThresh < distance - 2 ) )
     {
         mObstacle->updateObstacleAngle( mPhoebe->roverStatus().obstacle().bearing );
         return NavState::TurnAroundObs;
     }
 
-    const Waypoint& nextWaypoint = mPhoebe->roverStatus().path().front();
+    
     DriveStatus driveStatus = mPhoebe->drive( nextWaypoint.odom );
     if( driveStatus == DriveStatus::Arrived )
     {
@@ -344,3 +355,6 @@ NavState StateMachine::executeDrive()
 // [turn to ball | drive to ball] if ball lost, restart search a better way??
 // [drive to ball] obstacle and ball
 // all of code, what to do in cases of both ball and obstacle
+// Make it so that there are not so many Update functions. Make functions public? 
+    // maybe make variables themselves public?
+// [drive] Turn cvThresh into actual distance to rock

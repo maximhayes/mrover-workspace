@@ -11,6 +11,8 @@
 /*************************************************************************/
 /* Searcher Factory */
 /*************************************************************************/
+// Search Factory to allow for creation of searches. Allows for easy change from 
+// one search to another
 Searcher* SearchFactory( StateMachine* stateMachine, SearchType type )  //TODO
 {
     Searcher* search = nullptr;
@@ -37,12 +39,14 @@ Searcher* SearchFactory( StateMachine* stateMachine, SearchType type )  //TODO
 }
 
 /*************************************************************************/
-/* Spiral Search */
+/* Spiral Search: 
+    Spiral search is a search that begins at the initial waypoint, makes a 
+    360 degree turn and then spirals outward from North in a clockwise 
+    direction. */
 /*************************************************************************/
 SpiralOut::~SpiralOut() {}
 
-// Initializes the search ponit multipliers to be the intermost loop
-// of the search.
+// Initializes all search waypoints of the SpiralOut search algorithm
 void SpiralOut::initializeSearch( Rover* mPhoebe, const rapidjson::Document& mRoverConfig, const double pathWidth )
 {
     mSearchPoints.clear();
@@ -77,12 +81,14 @@ void SpiralOut::initializeSearch( Rover* mPhoebe, const rapidjson::Document& mRo
 } // initializeSearch()
 
 /*************************************************************************/
-/* Spiral Search */ 
+/* Spiral In 
+    Spiral In assumes one is starting from the outer corner of a previous search.
+    begins at the initial waypoint and spirals in in a counterclockwise
+    direction. */
 /*************************************************************************/
 SpiralIn::~SpiralIn() {}
 
-// Initializes the search ponit multipliers to be the intermost loop
-// of the search.
+// Initializes all search waypoints of the SpiralIn search algorithm
 void SpiralIn::initializeSearch( Rover* mPhoebe, const rapidjson::Document& mRoverConfig, const double pathWidth )
 {
     mSearchPoints.clear();
@@ -117,10 +123,14 @@ void SpiralIn::initializeSearch( Rover* mPhoebe, const rapidjson::Document& mRov
 } // initializeSearch()
 
 /*************************************************************************/
-/* LawnMower Search */
+/* LawnMower
+    assumes one is starting from the outer corner of a previous search
+    Begins at initial point. Makes a lawnmower pattern, moving from left to right
+    with thin lines along the y axis and long lines along the x axis */
 /*************************************************************************/
 LawnMower::~LawnMower() {}
 
+// Initializes all search waypoints of the LawnMower search algorithm
 void LawnMower::initializeSearch( Rover* mPhoebe, const rapidjson::Document& mRoverConfig, const double pathWidth )
 {
     const double searchBailThresh = mRoverConfig[ "searchBailThresh" ].GetDouble();
@@ -165,5 +175,7 @@ void LawnMower::initializeSearch( Rover* mPhoebe, const rapidjson::Document& mRo
 // TODO: Incorporate this into the StateMachine Function?
 //       Currently seems like a swiss-army knife function. Too abstracted. No reason for it to be here. 
 // TODO: More efficient spiral in than reversing the whole queue?
+// TODO: Generalize LawnMOwer to be able to make either side long or short side.
+//          i.e. make y pathwidth and x be cvthresh and visaversa. Seaching horizontally vs. vertically
 
 
