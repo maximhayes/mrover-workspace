@@ -62,7 +62,7 @@ NavState Searcher::run( Rover * mPhoebe, const rapidjson::Document& mRoverConfig
 
         case NavState::DriveToBall:
         {
-            return executeDriveToBall( mPhoebe );
+            return executeDriveToBall( mPhoebe, mRoverConfig );
         }
 
         default:
@@ -229,13 +229,17 @@ NavState Searcher::executeTurnToBall( Rover * mPhoebe )
 // If the rover finishes driving to the ball, it moves on to the next Waypoint.
 // If the rover is on course, it keeps driving to the ball.
 // Else, it turns back to face the ball.
-NavState Searcher::executeDriveToBall( Rover * mPhoebe )
+NavState Searcher::executeDriveToBall( Rover * mPhoebe,
+ const rapidjson::Document& mRoverConfig )
 {
     if( !mPhoebe->roverStatus().tennisBall().found )
     {
         return NavState::SearchFaceNorth;
     }
-    if( mPhoebe->roverStatus().obstacle().detected )
+
+    double cvThresh = mRoverConfig[ "cvThresh" ].GetDouble();
+    if( mPhoebe->roverStatus().obstacle().detected && 
+        mPhoebe->roverStatus().tennisBall().distance - 2 - cvThresh > 0)
     {
         stateMachine->updateObstacleAngle( mPhoebe->roverStatus().obstacle().bearing );
         return NavState::SearchTurnAroundObs;
