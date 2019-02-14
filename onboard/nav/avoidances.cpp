@@ -65,22 +65,31 @@ Odometry Original::createAvoidancePoint( Rover * mPhoebe, const double distance 
 //             confidentally see to the side.
 NavState Original::executeTurnAroundObs( Rover * mPhoebe, const rapidjson::Document& mRoverConfig )
 {
+
     double cvThresh = mRoverConfig[ "cvThresh" ].GetDouble();
-    if( ( mPhoebe->roverStatus().currentState() == NavState::TurnAroundObs ) &&
-        ( estimateNoneuclid( mPhoebe->roverStatus().path().front().odom,
-                             mPhoebe->roverStatus().odometry() ) < 2 * cvThresh ) )
+
+    if( mPhoebe->roverStatus().tennisBall().found &&
+        mPhoebe->roverStatus().tennisBall().distance - 2 - cvThresh < 0)
     {
-        mPhoebe->roverStatus().path().pop();
-        stateMachine->updateMissedWaypoints( ); // mMissedWaypoints += 1;
-        return NavState::Turn;
+        return NavState::TurnToBall;
     }
-    if( ( mPhoebe->roverStatus().currentState() == NavState::SearchTurnAroundObs ) &&
-        ( estimateNoneuclid( stateMachine->frontSearchPoint(), mPhoebe->roverStatus().odometry() )
-          < 2 * cvThresh ) )
-    {
-        stateMachine->popSearchPoint();
-        return NavState::SearchTurn;
-    }
+
+    // if( ( mPhoebe->roverStatus().currentState() == NavState::TurnAroundObs ) &&
+    //     ( estimateNoneuclid( mPhoebe->roverStatus().path().front().odom,
+    //                          mPhoebe->roverStatus().odometry() ) < 2 * cvThresh ) )
+    // {
+    //     mPhoebe->roverStatus().path().pop();
+    //     stateMachine->updateMissedWaypoints( ); // mMissedWaypoints += 1;
+    //     return NavState::Turn;
+    // }
+    // if( ( mPhoebe->roverStatus().currentState() == NavState::SearchTurnAroundObs ) &&
+    //     ( estimateNoneuclid( stateMachine->frontSearchPoint(), mPhoebe->roverStatus().odometry() )
+    //       < 2 * cvThresh ) )
+    // {
+    //     stateMachine->popSearchPoint();
+    //     return NavState::SearchTurn;
+    // }
+
     if( !mPhoebe->roverStatus().obstacle().detected )
     {        
         double distanceAroundObs = cvThresh / cos( fabs( degreeToRadian( mOriginalObstacleAngle ) ) );
@@ -91,9 +100,10 @@ NavState Original::executeTurnAroundObs( Rover * mPhoebe, const rapidjson::Docum
         }
         return NavState::SearchDriveAroundObs;
     }
-    
+
     double desiredBearing = mod( mPhoebe->roverStatus().odometry().bearing_deg
-                               + mPhoebe->roverStatus().obstacle().bearing, 360 );
+                           + mPhoebe->roverStatus().obstacle().bearing, 360 );
+
     mPhoebe->turn( desiredBearing );
     return mPhoebe->roverStatus().currentState();
 } // executeTurnAroundObs()
@@ -135,5 +145,3 @@ NavState Original::executeDriveAroundObs( Rover * mPhoebe )
     }
     return NavState::SearchTurnAroundObs;
 } // executeDriveAroundObs()
-
-

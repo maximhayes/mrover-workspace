@@ -158,7 +158,7 @@ void StateMachine::run()
             {
                 static int searchFails = 0;
                 static double nPathWidth = mRoverConfig["pathWidth"].GetDouble();
-                
+
                 switch( mRoverConfig[ "searchOrder" ][ searchFails % mRoverConfig[ "searchOrderSize" ].GetInt() ].GetInt() )
                 {
                     case 0:
@@ -183,7 +183,7 @@ void StateMachine::run()
                     }
                 }
                 mSearcher->initializeSearch( mPhoebe, mRoverConfig, nPathWidth );
-                if( searchFails % 2 == 1 && nPathWidth > 0.5 ) 
+                if( searchFails % 2 == 1 && nPathWidth > 0.5 )
                 {
                     nPathWidth *= 0.5;
                 }
@@ -214,12 +214,6 @@ void StateMachine::updateRoverStatus( AutonState autonState )
 {
     mNewRoverStatus.autonState() = autonState;
 } // updateRoverStatus( AutonState )
-
-// Updates the bearing of the rover's status.
-void StateMachine::updateRoverStatus( Bearing bearing )
-{
-    mNewRoverStatus.bearing() = bearing;
-} // updateRoverStatus( Bearing bearing )
 
 // Updates the course of the rover's status if it has changed.
 void StateMachine::updateRoverStatus( Course course )

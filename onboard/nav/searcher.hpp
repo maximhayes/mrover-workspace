@@ -41,7 +41,7 @@ private:
 
     NavState executeTurnToBall( Rover* mPhoebe );
 
-    NavState executeDriveToBall( Rover* mPhoebe );
+    NavState executeDriveToBall( Rover* mPhoebe, const rapidjson::Document& mRoverConfig );
 
 protected:  // TODO
     /*************************************************************************/
