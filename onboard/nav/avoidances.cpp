@@ -69,7 +69,9 @@ NavState Original::executeTurnAroundObs( Rover * mPhoebe, const rapidjson::Docum
     double cvThresh = mRoverConfig[ "cvThresh" ].GetDouble();
 
     if( mPhoebe->roverStatus().tennisBall().found && 
-        mPhoebe->roverStatus().tennisBall().distance - 2 - cvThresh < 0)
+      ( cvThresh - mPhoebe->roverStatus().tennisBall().distance - 2 < 0 or 
+      ( mPhoebe->roverStatus().tennisBall().bearing < 0 && mPhoebe->roverStatus().obstacle().bearing < 0 ) or
+      ( mPhoebe->roverStatus().tennisBall().bearing > 0 && mPhoebe->roverStatus().obstacle().bearing > 0 ) ) ) 
     {
         return NavState::TurnToBall;
     }
