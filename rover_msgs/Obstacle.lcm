@@ -2,5 +2,6 @@ package rover_msgs;
 
 struct Obstacle {
 	boolean detected;
-	double bearing; // from straight ahead	
+	double bearing; // from straight ahead
+	double distance; // to rover
 }

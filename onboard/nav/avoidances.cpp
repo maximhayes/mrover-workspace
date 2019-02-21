@@ -91,7 +91,7 @@ NavState Original::executeTurnAroundObs( Rover * mPhoebe, const rapidjson::Docum
     // }
 
     if( !mPhoebe->roverStatus().obstacle().detected )
-    {        
+    {
         double distanceAroundObs = cvThresh / cos( fabs( degreeToRadian( mOriginalObstacleAngle ) ) );
         mObstacleAvoidancePoint = createAvoidancePoint( mPhoebe, distanceAroundObs ) ;
         if( mPhoebe->roverStatus().currentState() == NavState::TurnAroundObs )
@@ -100,7 +100,7 @@ NavState Original::executeTurnAroundObs( Rover * mPhoebe, const rapidjson::Docum
         }
         return NavState::SearchDriveAroundObs;
     }
-
+    std::cout << "DISTANCE FROM ROVER: " << mPhoebe->roverStatus().obstacle().distance;
     double desiredBearing = mod( mPhoebe->roverStatus().odometry().bearing_deg
                            + mPhoebe->roverStatus().obstacle().bearing, 360 );
 

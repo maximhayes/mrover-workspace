@@ -60,7 +60,8 @@ export default {
 
             obstacle_state: {
                 detected: false,
-                bearing: 0
+                bearing: 0,
+				distance: 0
             },
 
             mode: WAYPOINT_MODE
@@ -187,6 +188,12 @@ export default {
             console.log(`occupied_angles odom_deg beta alpha and gamma: ${odom.bearing_deg} ${beta} ${alpha} ${gamma}`);
             console.log(`occupied_angles ends: ${phi_1} ${phi_2}`);
         };
+		
+		rov_dis: (rover, item) => {
+            const { dist } = dist_and_bearing(
+                to_decimal(rover), to_decimal(item));
+            return dist.toFixed(3);
+        };
 
         const recompute_obstacle_visibility = () => {
             const odom = this.get("odom");
@@ -248,13 +255,15 @@ export default {
                 if (turn_direction(occupied_angles)) {
                     obstacle_state = {
                         detected: true,
-                        bearing: 45
+                        bearing: 45,
+						distance: rov_dis
                     };
                 }
                 else {
                     obstacle_state = {
                         detected: true,
-                        bearing: -45
+                        bearing: -45,
+						distance: rov_dis
                     };
                 }
             }
