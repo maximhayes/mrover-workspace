@@ -13,18 +13,38 @@
 		"kD": 0
 	},
 
-	"turningBearingThresh": 20,
-	"drivingBearingThresh": 50,
+	"joystick":
+	{
+		"bearingPower": 0.5,
+		"drivingPower": 1.0,
+		"dampen": -1.0
+	},
 
-	"atGoalDistanceThresh": 2,
+	"navThresholds":
+	{
+		"turningBearingThresh": 20,
+		"drivingBearingThresh": 50,
+		"atGoalDistanceThresh": 2.0
+	},
 
-	"pathWidth": 2,
-	"searchBailThresh": 10,
-	"cvThresh": 3,
+	"computerVision":
+	{
+		"searchWaitStepSize": 90.0,
+		"searchWaitTime": 1.0,
+		"pathWidth": 2.0,
+		"obstacleThresh": 3.0
+	},
 
-	"navStatusChannel": "/nav_status",
-	"joystickChannel": "/drive_control",
+	"lcmChannels":
+	{
+		"navStatusChannel": "/nav_status",
+		"joystickChannel": "/autonomous"
+	},
 
-	"searchOrder":[0,1],
-	"searchOrderSize": 2
+	"search":
+	{
+		"order": [0, 1],
+		"numSearches": 2,
+		"bailThresh": 10.0
+	}
 }

@@ -50,6 +50,8 @@
         viewing: {
           '/arm_control': false,
           '/arm_motors': false,
+          '/arm_toggles_button_data': false,
+          '/arm_toggles_toggle_data': false,
           '/auton': false,
           '/autonomous': false,
           '/camera_servos': false,
@@ -63,21 +65,25 @@
           '/ik_ra_control': false,
           '/imu': false,
           '/kill_switch': false,
+          '/microscope': false,
           '/motor': false,
           '/nav_status': false,
           '/obstacle': false,
           '/odometry': false,
           '/pi_camera': false,
           '/pi_settings': false,
-          '/sa_control': false,
+          '/sa_controls': false,
           '/sa_motors': false,
           '/sensor_switch': false,
           '/sensors': false,
           '/set_demand': false,
           '/temperature': false,
           '/tennis_ball': false
+
         },
         subscriptions: [
+          {'topic': '/arm_toggles_button_data', 'type': 'ArmToggles'},
+          {'topic': '/arm_toggles_toggle_data', 'type': 'ArmToggles'},
           {'topic': '/ik_ra_control', 'type': 'ArmPosition'},
           {'topic': '/auton', 'type': 'AutonState'},
           {'topic': '/camera_servos', 'type': 'CameraServos'},
@@ -104,10 +110,11 @@
           {'topic': '/config_pid', 'type': 'PIDConstants'},
           {'topic': '/temperature', 'type': 'Temperature'},
           {'topic': '/tennis_ball', 'type': 'TennisBall'},
-          {'topic': '/sa_control', 'type': 'Xbox'},
+          {'topic': '/sa_controls', 'type': 'Xbox'},
           {'topic': '/arm_control', 'type': 'Xbox'},
           {'topic': '/imu', 'type': 'IMU'},
-          {'topic': '/gps', 'type': 'GPS'}
+          {'topic': '/gps', 'type': 'GPS'},
+          {'topic': '/microscope', 'type': 'Microscope'}
         ]
       }
     },

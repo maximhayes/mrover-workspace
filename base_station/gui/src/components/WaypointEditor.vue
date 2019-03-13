@@ -10,19 +10,19 @@
     <div class="box">
       <Checkbox ref="checkbox" v-bind:name="'Autonomy Mode'" v-on:toggle="toggleAutonMode($event) "/><br>
       <span>
-        Navigation State: {{nav_state}}<br>
+        Navigation State: {{nav_status.nav_state_name}}<br>
         Waypoints Traveled: {{nav_status.completed_wps}}/{{nav_status.total_wps}}<br>
         Missed Waypoints: {{nav_status.missed_wps}}/{{nav_status.total_wps}}
       </span>
     </div>
     <div class="box">
       <draggable v-model="storedWaypoints" class="dragArea" :options="{scroll: true, group: 'waypoints'}">
-        <WaypointItem v-for="waypoint, i in storedWaypoints" :key="i" v-bind:waypoint="waypoint" v-bind:list="0" v-bind:index="i" v-on:delete="deleteItem($event)"/>
+        <WaypointItem v-for="waypoint, i in storedWaypoints" :key="i" v-bind:waypoint="waypoint" v-bind:list="0" v-bind:index="i" v-on:delete="deleteItem($event)" v-on:toggleSearch="toggleSearch($event)"/>
       </draggable>
     </div>
     <div class="box">
       <draggable v-model="route" class="dragArea" :options="{scroll: true, group: 'waypoints'}">
-        <WaypointItem v-for="waypoint, i in route" :key="i" v-bind:waypoint="waypoint" v-bind:list="1" v-bind:index="i" v-on:delete="deleteItem($event)"/>
+        <WaypointItem v-for="waypoint, i in route" :key="i" v-bind:waypoint="waypoint" v-bind:list="1" v-bind:index="i" v-on:delete="deleteItem($event)" v-on:toggleSearch="toggleSearch($event)"/>
       </draggable>
     </div>
   </div>
@@ -35,6 +35,7 @@ import WaypointItem from './WaypointItem.vue'
 import {mapMutations, mapGetters} from 'vuex'
 import _ from 'lodash';
 import fnvPlus from 'fnv-plus';
+import L from 'leaflet'
 
 export default {
 
@@ -51,12 +52,11 @@ export default {
       lon: "",
       lat: "",
 
-      nav_state: "None",
-
       nav_status: {
+        nav_state_name: "Off",
         completed_wps: 0,
-        total_wps: 0,
-        missed_wps: 0
+        missed_wps: 0,
+        total_wps: 0
       },
 
       storedWaypoints: [],
@@ -67,34 +67,11 @@ export default {
   created: function () {
 
     this.$parent.subscribe('/nav_status', (msg) => {
-      this.nav_status = msg.message
-      
-      nav_state_textual: (nav_state) => {
-          switch(nav_state) {
-              case 0: return 'Off';
-              case 1: return 'Done';
-              case 10: return 'Turn';
-              case 11: return 'Drive';
-              case 20: return 'Search Face North';
-              case 21: return 'Search Face 120';
-              case 22: return 'Search Face 240';
-              case 23: return 'Search Face 360';
-              case 24: return 'Search Turn';
-              case 25: return 'Search Drive';
-              case 28: return 'Turn To Ball';
-              case 29: return 'Drive To Ball';
-              case 30: return 'Turn Around Obstacle';
-              case 31: return 'Drive Around Obstacle';
-              case 32: return 'Search Turn Around Obstacle';
-              case 33: return 'Search Drive Around Obstacle';
-              default: return 'Unknown';
-          }
-      },
-      this.nav_state = nav_state_textual(msg.nav_state);
+      this.nav_status = msg
     })
 
     window.setInterval(() => {
-        if(this.auton_enabled && this.nav_state === 'Done'){
+        if(this.auton_enabled && this.nav_status.nav_state_name === 'Done'){
           this.$refs.checkbox.toggleAndEmit()
         }
 
@@ -103,18 +80,24 @@ export default {
         let course = {
             num_waypoints: this.route.length,
             waypoints: _.map(this.route, (waypoint) => {
-                return {
-                    type: "Waypoint",
-                    search: waypoint.search,
-                    odom: {
-                        latitude_deg: waypoint.latitude_deg|0,
-                        latitude_min: waypoint.latitude_min,
-                        longitude_deg: waypoint.longitude_deg|0,
-                        longitude_min: waypoint.longitude_min,
-                        bearing_deg: 0,
-                        type: "Odometry"
-                    }
-                }
+              let lat = waypoint.latLng.lat
+              let lng = waypoint.latLng.lng
+              let latitude_deg = Math.trunc(lat)
+              let latitude_min = (lat - latitude_deg) * 60
+              let longitude_deg = Math.trunc(lng)
+              let longitude_min = (lng - longitude_deg) * 60
+              return {
+                  type: "Waypoint",
+                  search: waypoint.search,
+                  odom: {
+                      latitude_deg: latitude_deg,
+                      latitude_min: latitude_min,
+                      longitude_deg: longitude_deg,
+                      longitude_min: longitude_min,
+                      bearing_deg: 0,
+                      type: "Odometry"
+                  }
+              }
             })
         };
         course.hash = fnvPlus.fast1a52(JSON.stringify(course));
@@ -139,10 +122,19 @@ export default {
       }
     },
 
+    toggleSearch: function (payload) {
+      if(payload.list === 0) {
+        this.storedWaypoints[payload.index].search = !this.storedWaypoints[payload.index].search
+      } else if(payload.list === 1) {
+        this.route[payload.index].search = !this.route[payload.index].search
+      }
+    },
+
     addWaypoint: function (lat, lon) {
       this.storedWaypoints.push({
         name: this.name,
-        latLng: L.latLng(lat, lon)
+        latLng: L.latLng(lat, lon),
+        search: false
       })
     },
 
@@ -170,9 +162,9 @@ export default {
       this.addWaypoint(parseCoordinate(this.lat), -parseCoordinate(this.lon))
     },
 
-    toggleAutonMode(val){
+    toggleAutonMode: function (val) {
       this.setAutonMode(val)
-    }
+    },
   },
 
   watch: {
@@ -201,7 +193,7 @@ export default {
 </script>
 
 <style scoped>
-  
+
   .wrap {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -219,6 +211,6 @@ export default {
     padding: 10px;
     border: 1px solid black;
 
-    overflow: scroll;
+    overflow: auto;
   }
 </style>
