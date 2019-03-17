@@ -7,7 +7,7 @@ from . import mathUtils
 
 # contains the initialization code for initial setup of the field
 def initObjectsOnField(sim):
-    startPos = sim.Odom(39, 0, -110, 0, 0)
+    startPos = sim.GPS(39, 0, -110, 0, 0)
     field = sim.Field(startPos)  # make field entity and rover
     rover = sim.Rover(startPos)
     return rover, field  # if we init more than this, return a list

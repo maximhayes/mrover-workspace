@@ -1,0 +1,108 @@
+body, html, div, .container{
+    margin:0;
+    padding:0;
+    height:100%;
+    display:flex;
+    flex-flow:row wrap;
+    justify-content: space-around;
+}
+.container{
+    height:90%;
+}
+.container div{
+    border:2px solid #13F;
+}
+h1, h2, h3, p, ul, li, ol{
+    font:Verdana, sans-serif;
+    color: #000;
+    text-align: center;
+    margin:2px auto;
+}
+h2{
+    color: #f4ff00;
+}
+.field{
+    min-width:800px; /*needs to be hardcoded*/
+    height:100%;
+    max-width:50%;
+    order:1;
+    background-color:#df9157;
+}
+.location_container{
+    min-width:200px;
+    max-width:10%;
+    height:100%;
+    display:flex;
+    flex-flow:column;
+    justify-content: flex-start;
+    background-color: #0ab;
+}
+.location_container > div, .control_bar > div{
+    border-left:0;
+    border-right:0;
+    border-bottom:0;
+}
+.location_container div:first-of-type, .control_bar div:first-of-type{
+    border-top:0;
+}
+
+.control_bar{
+    min-width:200px;
+    max-width:20%;
+    order:5;
+    background-color:#0ab;
+    min-width:300px;
+    display:flex;
+    flex-flow: column;
+    justify-content: flex-start;
+}
+.control_bar div{
+    justify-content: center;
+    align-content: center;
+    flex: auto;
+    height:auto;
+}
+.control_bar input{
+    margin:0px 10px 0 0;
+}
+.field_rad{
+    max-height:200px;
+}
+.download_upload button{
+    margin:0 auto;
+}
+input{
+    margin: 10px 0px 10px 0px;
+}
+.operational_settings div{
+    border:0;
+    width:100%;
+    height:30%;
+}
+.operational_settings input{
+   margin:5px 10px 0 0;
+}
+.operational_settings p{
+    margin: 0;
+}
+.operational_settings h3{
+    margin: 5px 0px 5px 0px;
+}
+ul{
+    list-style-type: none;
+    padding-left:0;
+    margin:10px auto;
+}
+.download_upload input{
+    margin-left: 10px;
+}
+.placement_buttons div{
+    border:0;
+    width:100%;
+}
+.placement_buttons p{
+    margin: 0;
+}
+.placement_buttons button{
+    margin-top:10px;
+}

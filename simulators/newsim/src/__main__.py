@@ -21,8 +21,9 @@ import math  # , abstractmethod
 import asyncio
 from rover_common.aiohelper import run_coroutines
 # from rover_msgs import DanesMsg
-from rover_msgs import (NavStatus, Joystick, Odometry, AutonState,
+from rover_msgs import (NavStatus, Joystick, GPSetry, AutonState,
                         Course, Obstacle, TennisBall)
+import mathUtils
 
 # per Faruk's advice, the simulator is now contained in a metaclass
 
@@ -51,7 +52,7 @@ class SimulatorMetaClass:
         self.JoystickMsg = Joystick()
         # self.GPSMsg = GPS()
         # self.BearingMsg = Bearing()
-        self.OdomMsg = Odometry()
+        self.GPSMsg = GPS()
         self.ObstacleMsg = Obstacle()
         self.TennisBallMsg = TennisBall()
         self.CourseMsg = Course()
@@ -65,12 +66,12 @@ class SimulatorMetaClass:
         self.JoystickMsg.forward_back = 0
         self.JoystickMsg.left_right = 0
 
-        self.OdomMsg.latitude_deg = 39
-        self.OdomMsg.latitude_min = 0
-        self.OdomMsg.longitude_deg = -110
-        self.OdomMsg.longitude_min = 0
-        self.OdomMsg.bearing = 0
-        self.OdomMsg.speed = -999  # this value is never used
+        self.GPSMsg.latitude_deg = 39
+        self.GPSMsg.latitude_min = 0
+        self.GPSMsg.longitude_deg = -110
+        self.GPSMsg.longitude_min = 0
+        self.GPSMsg.bearing = 0
+        self.GPSMsg.speed = -999  # this value is never used
         # so it's being set to a dummy value. DO NOT USE IT
 
         self.ObstacleMsg.detected = 0
@@ -90,6 +91,10 @@ class SimulatorMetaClass:
     # in this setup, camelCasing denotes a class instance
     # while under_scored_variables indicate a variable within the class
     # to avoid confusion
+
+    def nav_test(self, channel, msg):
+        pass
+        # define this as per the spec
 
     def nav_state_cb(self, channel, msg):
         m = NavStatus.decode(msg)
@@ -121,9 +126,11 @@ class SimulatorMetaClass:
     #         lcm.publish("\GPS", self.GPSMsg.encode())
     #         await asyncio.sleep(10)
 
-    async def publish_odom(self, lcm):
+    # bearing publish
+
+    async def publish_GPS(self, lcm):
         while True:
-            lcm.publish("\odometry", self.OdomMsg.encode())
+            lcm.publish("\GPS", self.GPSMsg.encode())
             await asyncio.sleep(10)
 
     async def publish_course(self, lcm):
@@ -147,9 +154,9 @@ class SimulatorMetaClass:
     # as if you would the Rover class, including proper
     # superclass init
 
-    # identical to the odom message, minus speed, bc it's a useful
+    # identical to the GPS message, minus speed, bc it's a useful
     # object to have internally
-    class Odom:
+    class GPS:
         def __init__(self, lat0, latm0, lon0, lonm0, bearing):
             self.lat_deg = lat0
             self.lat_min = latm0
@@ -163,12 +170,12 @@ class SimulatorMetaClass:
 
     class SimObj(ABC):
         # define initial location and other properties
-        def __init__(self, odom):
-            self.lat_deg = odom.lat0
-            self.lat_min = odom.latm0
-            self.lon_deg = odom.lon0
-            self.lon_min = odom.lonm0
-            self.bearing = odom.bearing0
+        def __init__(self, GPS):
+            self.lat_deg = GPS.lat0
+            self.lat_min = GPS.latm0
+            self.lon_deg = GPS.lon0
+            self.lon_min = GPS.lonm0
+            self.bearing = GPS.bearing0
             self.shape = 0  # need to create a seed system?
 
         # any methods common to all classes should be defined
@@ -184,34 +191,41 @@ class SimulatorMetaClass:
         # def sample_abs_method(self):
         #     pass
     class Field(SimObj):
-        def __init__(self, odom, radius=2):  # other properties
-            super().__init__(odom)
+        def __init__(self, GPS, radius=2):  # other properties
+            super().__init__(GPS)
             self.radius = radius  # in degrees, if not specified
             # radius is 2
 
     class Rover(SimObj):
-        def __init__(self, odom, speed_trans=1,
+        def __init__(self, GPS, speed_trans=1,
                      speed_rot=1):
-            super().__init__(odom)
+            super().__init__(GPS)
             self.fov = 120  # units of degrees,
             # 120 if not specified
             self.cv_thresh = 5
             self.speed_translational = speed_trans
             # speed multiplier, 1 if not specified
             self.speed_rotational = speed_rot
+        
+        # takes relative rotation angle
+        def move_rot(self, angle):
+            self.GPS.bearing +=angle
+        
+        def move_trans(self, dist):
+            
 
     class TennisBall(SimObj):
-        def __init__(self, odom):  # other properties
-            super().__init__(odom)
+        def __init__(self, GPS):  # other properties
+            super().__init__(GPS)
             self.other_prop = 0
 
     class Obstacle(SimObj):
-        def __init__(self, odom):  # other properties
-            super().__init__(odom)
+        def __init__(self, GPS):  # other properties
+            super().__init__(GPS)
 
     class Waypoint(SimObj):
-        def __init__(self, odom, searchable=0):
-            super().__init__(odom)
+        def __init__(self, GPS, searchable=0):
+            super().__init__(GPS)
             self.search = searchable  # defaults to false if not set
 
 
@@ -229,7 +243,7 @@ def main():
     # creates loop to execute this code repeatedly with the lcm
     run_coroutines(lcm.loop(), Simulator.publish_auton_state(lcm),
                    Simulator.publish_course(lcm),
-                   Simulator.publish_odom(lcm),
+                   Simulator.publish_GPS(lcm),
                    Simulator.publish_obstacle(lcm),
                    Simulator.publish_tennis_ball(lcm),
                    simHandler.runSimulator(Simulator))

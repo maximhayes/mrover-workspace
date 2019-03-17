@@ -1,0 +1,7 @@
+bUseCorpseLocator=True
+BabyCuddleIntervalMultiplier=40
+BabyMatureSpeedMultiplier=100
+BabyCuddleIntervalMultiplier=0.5
+BabyCuddleGracePeriodMultiplier=0.5
+BabyImprintingStatScaleMultiplier=5.0
+EggHatchSpeedMultiplier=40

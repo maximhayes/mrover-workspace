@@ -1,0 +1,23 @@
+body {
+    display: flexbox;
+    flex-direction: column;
+}
+
+.other-subsection {
+    display: flexbox;
+    flex-direction: row;
+
+    border-width: 1px;
+    border-style: solid;
+    border-color: black;
+}
+
+.data-subsection {
+    display: flexbox;
+    flex-direction: row;
+    
+    border-width: 1px;
+    border-style: solid;
+    border-color: black;
+}
+
