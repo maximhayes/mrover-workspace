@@ -9,7 +9,6 @@
 void Avoidance::updateObstacleAngle( double bearing ) 
 {
     mOriginalObstacleAngle = bearing;
-    return;
 }
 
 /*****************************************************/

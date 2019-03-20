@@ -48,22 +48,13 @@ StateMachine::~StateMachine( )
     delete mPhoebe;
 }
 
-void StateMachine::setSearcher( SearchType type )
-{
-    assert( mSearcher );
-    delete mSearcher;
-    mSearcher = SearchFactory( this, type );
-}
-
 void StateMachine::updateCompletedPoints( )
 {
     mCompletedWaypoints += 1;
-    return;
 }
 
 void StateMachine::updateMissedWaypoints( ) {
     mMissedWaypoints += 1;
-    return;
 }
 
 Odometry StateMachine::frontSearchPoint( )
@@ -74,13 +65,18 @@ Odometry StateMachine::frontSearchPoint( )
 void StateMachine::popSearchPoint()
 {
     mSearcher->popSearchPoint();
-    return;
+}
+
+void StateMachine::setSearcher( SearchType type )
+{
+    assert( mSearcher );
+    delete mSearcher;
+    mSearcher = SearchFactory( this, type );
 }
 
 void StateMachine::updateObstacleAngle( double bearing ) 
 {
     mObstacle->updateObstacleAngle( bearing );
-    return;
 }
 // Runs the state machine through one iteration. The state machine will
 // run if the state has changed or if the rover's status has changed.

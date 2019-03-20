@@ -11,6 +11,7 @@
 /*************************************************************************/
 /* Searcher Factory */
 /*************************************************************************/
+
 Avoidance* AvoidFactory( StateMachine* stateMachine, AvoidanceType type )  //TODO
 {
     Avoidance* avoid = nullptr;
@@ -37,22 +38,6 @@ Original::~Original() {}
 /* Helpers */
 /*****************************************************/
 
-// Creates the odometry point to use to drive around in obstacle
-// avoidance.
-Odometry Original::createAvoidancePoint( Rover * mPhoebe, const double distance )
-{
-    Odometry avoidancePoint = mPhoebe->roverStatus().odometry();
-    double totalLatitudeMinutes = avoidancePoint.latitude_min +
-        cos( degreeToRadian( avoidancePoint.bearing_deg ) ) * distance * LAT_METER_IN_MINUTES;
-    double totalLongitudeMinutes = avoidancePoint.longitude_min +
-        sin( degreeToRadian( avoidancePoint.bearing_deg ) ) * distance * mPhoebe->longMeterInMinutes();
-    avoidancePoint.latitude_deg += totalLatitudeMinutes / 60;
-    avoidancePoint.latitude_min = ( totalLatitudeMinutes - ( ( (int) totalLatitudeMinutes) / 60 ) * 60 );
-    avoidancePoint.longitude_deg += totalLongitudeMinutes / 60;
-    avoidancePoint.longitude_min = ( totalLongitudeMinutes - ( ( (int) totalLongitudeMinutes) / 60 ) * 60 );
-    return avoidancePoint;
-}
-
 // Executes the logic for turning around an obstacle. If the rover is
 // turned off, it proceeds to Off. If the tennis ball is detected, the
 // rover proceeds to it. If the Waypopint and obstacle are in similar
@@ -68,8 +53,9 @@ NavState Original::executeTurnAroundObs( Rover * mPhoebe, const rapidjson::Docum
     
     double cvThresh = mRoverConfig[ "cvThresh" ].GetDouble();
 
-    if( mPhoebe->roverStatus().tennisBall().found && 
-      ( cvThresh - mPhoebe->roverStatus().tennisBall().distance - 2 < 0 or 
+    if( mPhoebe->roverStatus().currentState() == NavState::SearchTurnAroundObs && 
+        mPhoebe->roverStatus().tennisBall().found &&  
+      ( cvThresh > mPhoebe->roverStatus().tennisBall().distance - 2 or  //TODO Replace cvThresh with dist to obs
       ( mPhoebe->roverStatus().tennisBall().bearing < 0 && mPhoebe->roverStatus().obstacle().bearing < 0 ) or
       ( mPhoebe->roverStatus().tennisBall().bearing > 0 && mPhoebe->roverStatus().obstacle().bearing > 0 ) ) ) 
     {
@@ -93,7 +79,7 @@ NavState Original::executeTurnAroundObs( Rover * mPhoebe, const rapidjson::Docum
     // }
 
     if( !mPhoebe->roverStatus().obstacle().detected )
-    {        
+    {   
         double distanceAroundObs = cvThresh / cos( fabs( degreeToRadian( mOriginalObstacleAngle ) ) );
         mObstacleAvoidancePoint = createAvoidancePoint( mPhoebe, distanceAroundObs ) ;
         if( mPhoebe->roverStatus().currentState() == NavState::TurnAroundObs )
@@ -148,4 +134,28 @@ NavState Original::executeDriveAroundObs( Rover * mPhoebe )
     return NavState::SearchTurnAroundObs;
 } // executeDriveAroundObs()
 
+// Creates the odometry point to use to drive around in obstacle
+// avoidance.
+Odometry Original::createAvoidancePoint( Rover * mPhoebe, const double distance )
+{
+    Odometry avoidancePoint = mPhoebe->roverStatus().odometry();
+    double totalLatitudeMinutes = avoidancePoint.latitude_min +
+        cos( degreeToRadian( avoidancePoint.bearing_deg ) ) * distance * LAT_METER_IN_MINUTES;
+    double totalLongitudeMinutes = avoidancePoint.longitude_min +
+        sin( degreeToRadian( avoidancePoint.bearing_deg ) ) * distance * mPhoebe->longMeterInMinutes();
+    avoidancePoint.latitude_deg += totalLatitudeMinutes / 60;
+    avoidancePoint.latitude_min = ( totalLatitudeMinutes - ( ( (int) totalLatitudeMinutes) / 60 ) * 60 );
+    avoidancePoint.longitude_deg += totalLongitudeMinutes / 60;
+    avoidancePoint.longitude_min = ( totalLongitudeMinutes - ( ( (int) totalLongitudeMinutes) / 60 ) * 60 );
+    
+    std::cout << distance << std::endl;
+    std::cout << avoidancePoint.latitude_deg << " " << avoidancePoint.latitude_min << std::endl;
+    std::cout << avoidancePoint.longitude_deg << " " << avoidancePoint.longitude_min << std::endl;
+
+    return avoidancePoint;
+}
+
+
+// TODO
+// Find way to remove missed waypoints
 
