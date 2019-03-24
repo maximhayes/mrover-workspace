@@ -9,10 +9,11 @@
 #include <stack>
 
 /*************************************************************************/
-/* Searcher Factory */
+/* Avoidance Factory */
 /*************************************************************************/
-
-Avoidance* AvoidFactory( StateMachine* stateMachine, AvoidanceType type )  //TODO
+// Avoidance Factory to allow for creation of obstacle avoidance objects. 
+// Allows for easy change from obstacle avoidance algorithm to another
+Avoidance* AvoidFactory( StateMachine* stateMachine, AvoidanceType type )
 {
     Avoidance* avoid = nullptr;
     switch (type)
@@ -30,7 +31,12 @@ Avoidance* AvoidFactory( StateMachine* stateMachine, AvoidanceType type )  //TOD
 }
 
 /*************************************************************************/
-/* Spiral Search */
+/* Original Obstacle Avoidance Algorithm 
+   When an obstacle is detected, the rover will drive around whichever way 
+   CV decides is the fastest. If the tennisball is detected, the heirarchy has 
+   two cases in which the rover will begin to turn to tennis ball:
+        1. the difference in distance (tennis ball is closer than obs)
+        2. Turning around obs is same direction to turn to tennis ball */
 /*************************************************************************/
 Original::~Original() {}
 
@@ -48,6 +54,8 @@ Original::~Original() {}
 //             therefore we produce an underestimate for how close the waypoint is to the
 //             obstacle. This relies on using a path width no larger than what we can
 //             confidentally see to the side.
+//          
+//             There is no rock that is more than 8 meters in diameter
 NavState Original::executeTurnAroundObs( Rover * mPhoebe, const rapidjson::Document& mRoverConfig )
 {
     
@@ -96,12 +104,13 @@ NavState Original::executeTurnAroundObs( Rover * mPhoebe, const rapidjson::Docum
     return mPhoebe->roverStatus().currentState();
 } // executeTurnAroundObs()
 
-// Executes the logic for driving around an obstacle. If the rover is
-// turned off, proceed to Off. If another obstacle is detected, proceed
-// to go around it. If the rover finished going around the obstacle, it
-// proceeds to turning to the Waypoint that was being driven to when the
-// obstacle was spotted. Else, continue driving around the obstacle.
-// TODO: fix the case about when the obstacle gets off course.
+// Executes the logic for driving around an obstacle. 
+// If the rover is turned off, proceed to Off. 
+// If another obstacle is detected, proceed to go around it. 
+// If the rover finished going around the obstacle, it proceeds to 
+//      turn to the Waypoint that was being driven to when the
+//      obstacle was spotted. 
+// Else, continue driving around the obstacle.
 NavState Original::executeDriveAroundObs( Rover * mPhoebe )
 {
     if( mPhoebe->roverStatus().obstacle().detected )
@@ -134,8 +143,7 @@ NavState Original::executeDriveAroundObs( Rover * mPhoebe )
     return NavState::SearchTurnAroundObs;
 } // executeDriveAroundObs()
 
-// Creates the odometry point to use to drive around in obstacle
-// avoidance.
+// Creates the odometry point used to drive around an obstacle
 Odometry Original::createAvoidancePoint( Rover * mPhoebe, const double distance )
 {
     Odometry avoidancePoint = mPhoebe->roverStatus().odometry();
@@ -154,8 +162,3 @@ Odometry Original::createAvoidancePoint( Rover * mPhoebe, const double distance 
 
     return avoidancePoint;
 }
-
-
-// TODO
-// Find way to remove missed waypoints
-

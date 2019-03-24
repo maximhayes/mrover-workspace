@@ -3,6 +3,7 @@
 
 #include "avoider.hpp"
 
+// This class is the representation of different avoidance algorithms
 enum class AvoidanceType
 {
     ORIGINAL,

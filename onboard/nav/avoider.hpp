@@ -25,10 +25,6 @@ public:
 
     virtual NavState executeDriveAroundObs( Rover* mPhoebe ) = 0;
 
-// private:
-    /*************************************************************************/
-    /* Private Member Functions */
-    /*************************************************************************/
 
 
 protected:  // TODO
