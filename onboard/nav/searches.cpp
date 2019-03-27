@@ -173,9 +173,8 @@ void LawnMower::initializeSearch( Rover* mPhoebe, const rapidjson::Document& mRo
 /* TODO */
 /*************/
 // TODO: Incorporate this into the StateMachine Function?
-//       Currently seems like a swiss-army knife function. Too abstracted. No reason for it to be here. 
-// TODO: More efficient spiral in than reversing the whole queue?
-// TODO: Generalize LawnMOwer to be able to make either side long or short side.
+// TODO: More efficient spiral in than reversing the whole queue? Not using this search, so low priority
+// TODO: Generalize LawnMower to be able to make either side long or short side.
 //          i.e. make y pathwidth and x be cvthresh and visaversa. Seaching horizontally vs. vertically
 
 

@@ -60,11 +60,6 @@ void StateMachine::updateObstacleAngle( double bearing )
     mObstacle->updateObstacleAngle( bearing );
 }
 
-// // Function to allow external objects to update missed waypoints
-// void StateMachine::updateMissedWaypoints( ) {
-//     mMissedWaypoints += 1;
-// }
-
 // Gives external objects access to search point
 Odometry StateMachine::frontSearchPoint( )
 {

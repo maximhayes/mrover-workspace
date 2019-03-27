@@ -23,7 +23,7 @@ Avoidance* AvoidFactory( StateMachine* stateMachine, AvoidanceType type )
             break;
 
         case AvoidanceType::UNKNOWN:
-            std::cerr << "Unkown Search Type. Defaulting to Spiral\n";
+            std::cerr << "Unkown Search Type. Defaulting to original\n";
             avoid = new Original( stateMachine );
             break;
     }
@@ -44,13 +44,12 @@ Original::~Original() {}
 /* Helpers */
 /*****************************************************/
 
-// Executes the logic for turning around an obstacle. If the rover is
-// turned off, it proceeds to Off. If the tennis ball is detected, the
-// rover proceeds to it. If the Waypopint and obstacle are in similar
-// locations, assume that we would have seen the ball and move on. If
-// the obstacle is no longer detcted, proceed to drive around the
-// obstacle. Else continue turning around the obstacle.
-// ASSUMPTION: To avoid an infinite loop, we assume that the obstacle is straight ahead of us,
+// Executes the logic for turning around an obstacle. 
+// If the rover is turned off, it proceeds to Off. 
+// If the tennis ball is detected, the rover proceeds to it. 
+// If the obstacle is no longer detcted, proceed to drive around the obstacle. 
+// Else continue turning around the obstacle.
+// ASSUMPTION: We assume that the obstacle is straight ahead of us,
 //             therefore we produce an underestimate for how close the waypoint is to the
 //             obstacle. This relies on using a path width no larger than what we can
 //             confidentally see to the side.
@@ -61,6 +60,8 @@ NavState Original::executeTurnAroundObs( Rover * mPhoebe, const rapidjson::Docum
     
     double cvThresh = mRoverConfig[ "cvThresh" ].GetDouble();
 
+    //if we see the ball and are in a search state, only go to turn to ball if turning 
+    //   same direction for obstcle
     if( mPhoebe->roverStatus().currentState() == NavState::SearchTurnAroundObs && 
         mPhoebe->roverStatus().tennisBall().found &&  
       ( cvThresh > mPhoebe->roverStatus().tennisBall().distance - 2 or  //TODO Replace cvThresh with dist to obs
@@ -69,22 +70,6 @@ NavState Original::executeTurnAroundObs( Rover * mPhoebe, const rapidjson::Docum
     {
         return NavState::TurnToBall;
     }
-
-    // if( ( mPhoebe->roverStatus().currentState() == NavState::TurnAroundObs ) &&
-    //     ( estimateNoneuclid( mPhoebe->roverStatus().path().front().odom,
-    //                          mPhoebe->roverStatus().odometry() ) < 2 * cvThresh ) )
-    // {
-    //     mPhoebe->roverStatus().path().pop();
-    //     stateMachine->updateMissedWaypoints( ); // mMissedWaypoints += 1;
-    //     return NavState::Turn;
-    // }
-    // if( ( mPhoebe->roverStatus().currentState() == NavState::SearchTurnAroundObs ) &&
-    //     ( estimateNoneuclid( stateMachine->frontSearchPoint(), mPhoebe->roverStatus().odometry() )
-    //       < 2 * cvThresh ) )
-    // {
-    //     stateMachine->popSearchPoint();
-    //     return NavState::SearchTurn;
-    // }
 
     if( !mPhoebe->roverStatus().obstacle().detected )
     {   
@@ -98,7 +83,7 @@ NavState Original::executeTurnAroundObs( Rover * mPhoebe, const rapidjson::Docum
     }
     
     double desiredBearing = mod( mPhoebe->roverStatus().odometry().bearing_deg
-                           + mPhoebe->roverStatus().obstacle().bearing, 360 );
+                               + mPhoebe->roverStatus().obstacle().bearing, 360 );
 
     mPhoebe->turn( desiredBearing );
     return mPhoebe->roverStatus().currentState();
