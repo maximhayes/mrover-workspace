@@ -11,7 +11,8 @@ public:
     /* Public Member Functions */
     /*************************************************************************/
     Avoidance(StateMachine* stateMachine_)
-    : stateMachine(stateMachine_) {}
+    : stateMachine(stateMachine_),
+    mJustDetectedObstacle(false) {}
 
     virtual ~Avoidance() {}
 
@@ -42,6 +43,11 @@ protected:  // TODO
 
     // Initial angle to go around obstacle upon detection.
     double mOriginalObstacleAngle;
+
+    // Last obstacle angle for consecutive obstacle detections
+    bool mJustDetectedObstacle;
+
+    double mLastObstacleAngle;
 
 };
 

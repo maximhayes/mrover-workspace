@@ -50,14 +50,14 @@ Original::~Original() {}
 //             confidentally see to the side.
 NavState Original::executeTurnAroundObs( Rover * mPhoebe, const rapidjson::Document& mRoverConfig )
 {
-    
+
     double cvThresh = mRoverConfig[ "cvThresh" ].GetDouble();
 
-    if( mPhoebe->roverStatus().currentState() == NavState::SearchTurnAroundObs && 
-        mPhoebe->roverStatus().tennisBall().found &&  
+    if( mPhoebe->roverStatus().currentState() == NavState::SearchTurnAroundObs &&
+        mPhoebe->roverStatus().tennisBall().found &&
       ( cvThresh > mPhoebe->roverStatus().tennisBall().distance - 2 or  //TODO Replace cvThresh with dist to obs
       ( mPhoebe->roverStatus().tennisBall().bearing < 0 && mPhoebe->roverStatus().obstacle().bearing < 0 ) or
-      ( mPhoebe->roverStatus().tennisBall().bearing > 0 && mPhoebe->roverStatus().obstacle().bearing > 0 ) ) ) 
+      ( mPhoebe->roverStatus().tennisBall().bearing > 0 && mPhoebe->roverStatus().obstacle().bearing > 0 ) ) )
     {
         return NavState::TurnToBall;
     }
@@ -79,18 +79,32 @@ NavState Original::executeTurnAroundObs( Rover * mPhoebe, const rapidjson::Docum
     // }
 
     if( !mPhoebe->roverStatus().obstacle().detected )
-    {   
+    {
         double distanceAroundObs = cvThresh / cos( fabs( degreeToRadian( mOriginalObstacleAngle ) ) );
         mObstacleAvoidancePoint = createAvoidancePoint( mPhoebe, distanceAroundObs ) ;
+
+
         if( mPhoebe->roverStatus().currentState() == NavState::TurnAroundObs )
         {
             return NavState::DriveAroundObs;
         }
+        mJustDetectedObstacle = false;
+        
         return NavState::SearchDriveAroundObs;
     }
-    
+
+    double obstacleBearing = mPhoebe->roverStatus().obstacle().bearing;
+
+    if (mJustDetectedObstacle && (obstacleBearing < 0) ? (mLastObstacleAngle >= 0) : (mLastObstacleAngle < 0)) {
+        obstacleBearing *= -1;
+    }
+
     double desiredBearing = mod( mPhoebe->roverStatus().odometry().bearing_deg
-                           + mPhoebe->roverStatus().obstacle().bearing, 360 );
+                           + obstacleBearing, 360 );
+                           //std::cout << "\nobstacle bearing: " << mPhoebe->roverStatus().obstacle().bearing << std::endl;
+
+    mJustDetectedObstacle = true;
+    mLastObstacleAngle = obstacleBearing;
 
     mPhoebe->turn( desiredBearing );
     return mPhoebe->roverStatus().currentState();
@@ -147,7 +161,7 @@ Odometry Original::createAvoidancePoint( Rover * mPhoebe, const double distance 
     avoidancePoint.latitude_min = ( totalLatitudeMinutes - ( ( (int) totalLatitudeMinutes) / 60 ) * 60 );
     avoidancePoint.longitude_deg += totalLongitudeMinutes / 60;
     avoidancePoint.longitude_min = ( totalLongitudeMinutes - ( ( (int) totalLongitudeMinutes) / 60 ) * 60 );
-    
+
     std::cout << distance << std::endl;
     std::cout << avoidancePoint.latitude_deg << " " << avoidancePoint.latitude_min << std::endl;
     std::cout << avoidancePoint.longitude_deg << " " << avoidancePoint.longitude_min << std::endl;
@@ -158,4 +172,3 @@ Odometry Original::createAvoidancePoint( Rover * mPhoebe, const double distance 
 
 // TODO
 // Find way to remove missed waypoints
-
