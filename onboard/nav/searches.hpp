@@ -24,8 +24,6 @@ public:
 
     ~SpiralOut();
 
-    // Initializes the search ponit multipliers to be the intermost loop
-    // of the search.
     void initializeSearch( Rover* mPhoebe, const rapidjson::Document& mRoverConfig, const double pathWidth );
     
 };
@@ -41,8 +39,6 @@ public:
 
     ~SpiralIn();
 
-    // Initializes the search ponit multipliers to be the intermost loop
-    // of the search.
     void initializeSearch( Rover* mPhoebe, const rapidjson::Document& mRoverConfig, const double pathWidth );
     
 };
@@ -58,8 +54,6 @@ public:
 
     ~LawnMower();
 
-    // Initializes the search ponit multipliers to be the intermost loop
-    // of the search.
     void initializeSearch( Rover* mPhoebe, const rapidjson::Document& mRoverConfig, const double pathWidth );
 
 };

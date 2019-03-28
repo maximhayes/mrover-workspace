@@ -40,7 +40,9 @@ public:
 
     void updateCompletedPoints( );
 
-    void updateMissedWaypoints( );
+    void updateObstacleAngle( double obstacle );
+
+    // void updateMissedWaypoints( );
 
     Odometry frontSearchPoint( );
 
@@ -48,7 +50,7 @@ public:
 
     void setSearcher(SearchType type);
 
-    void updateObstacleAngle( double obstacle );
+
 
 private:
     /*************************************************************************/

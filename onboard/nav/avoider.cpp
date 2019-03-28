@@ -6,6 +6,7 @@
 #include <cmath>
 #include <iostream>
 
+// Allows outside objects to access obstacle angle
 void Avoidance::updateObstacleAngle( double bearing ) 
 {
     mOriginalObstacleAngle = bearing;
@@ -14,6 +15,9 @@ void Avoidance::updateObstacleAngle( double bearing )
 /*****************************************************/
 /* Avoidance Run Fuction */
 /*****************************************************/
+// Runs the state machine through one iteration. The state machine will
+// run when the rover is in an obstacle avoidance state (called by StateMachine).
+// Will call the corresponding function based on the current state.
 NavState Avoidance::run( Rover * mPhoebe, const rapidjson::Document& mRoverConfig )
 {
     switch ( mPhoebe->roverStatus().currentState() )
@@ -36,8 +40,3 @@ NavState Avoidance::run( Rover * mPhoebe, const rapidjson::Document& mRoverConfi
         }
     } // switch
 }
-
-/*****************************************************/
-/* Helpers */
-/*****************************************************/
-
