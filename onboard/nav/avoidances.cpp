@@ -23,6 +23,7 @@ Avoidance* AvoidFactory( StateMachine* stateMachine, AvoidanceType type )
             break;
 
         case AvoidanceType::UNKNOWN:
+        default:
             std::cerr << "Unkown Search Type. Defaulting to original\n";
             avoid = new Original( stateMachine );
             break;
@@ -68,6 +69,8 @@ NavState Original::executeTurnAroundObs( Rover * mPhoebe, const rapidjson::Docum
       ( mPhoebe->roverStatus().tennisBall().bearing < 0 && mPhoebe->roverStatus().obstacle().bearing < 0 ) or
       ( mPhoebe->roverStatus().tennisBall().bearing > 0 && mPhoebe->roverStatus().obstacle().bearing > 0 ) ) )
     {
+        //Leaving turn around obstacle, deal with new obstacles as normal
+        mJustDetectedObstacle = false;
         return NavState::TurnToBall;
     }
 
@@ -81,6 +84,7 @@ NavState Original::executeTurnAroundObs( Rover * mPhoebe, const rapidjson::Docum
         {
             return NavState::DriveAroundObs;
         }
+        //Leaving turn around obstacle, deal with new obstacles as normal
         mJustDetectedObstacle = false;
 
         return NavState::SearchDriveAroundObs;
@@ -88,6 +92,8 @@ NavState Original::executeTurnAroundObs( Rover * mPhoebe, const rapidjson::Docum
 
     double obstacleBearing = mPhoebe->roverStatus().obstacle().bearing;
 
+    // If we haven't left obstacle avoidance, check if current obstacle bearing and the obstacle we just saw's bearing
+    // give opposite directions for turning. If so, just keep turning around the first obstacle (multiply bearing by -1)
     if (mJustDetectedObstacle && (obstacleBearing < 0) ? (mLastObstacleAngle >= 0) : (mLastObstacleAngle < 0)) {
         obstacleBearing *= -1;
     }

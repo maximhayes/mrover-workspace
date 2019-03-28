@@ -245,16 +245,13 @@ NavState Searcher::executeDriveToBall( Rover * mPhoebe,
     }
 
     double cvThresh = mRoverConfig[ "cvThresh" ].GetDouble();
-<<<<<<< HEAD
     if( mPhoebe->roverStatus().obstacle().detected &&
       ( cvThresh < mPhoebe->roverStatus().tennisBall().distance - 2 ) )
-=======
 
     if( mPhoebe->roverStatus().obstacle().detected and
-      ( cvThresh < mPhoebe->roverStatus().tennisBall().distance - 2 ) and 
+      ( cvThresh < mPhoebe->roverStatus().tennisBall().distance - 2 ) and
       ( ( mPhoebe->roverStatus().tennisBall().bearing < 0 && mPhoebe->roverStatus().obstacle().bearing > 0 ) or
       ( mPhoebe->roverStatus().tennisBall().bearing > 0 && mPhoebe->roverStatus().obstacle().bearing < 0 ) ) )
->>>>>>> 55911eb80df82423e18e629bf1430d404b9bd3ee
     {
         stateMachine->updateObstacleAngle( mPhoebe->roverStatus().obstacle().bearing );
         return NavState::SearchTurnAroundObs;

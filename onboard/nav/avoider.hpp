@@ -40,9 +40,10 @@ protected:  // TODO
     // Initial angle to go around obstacle upon detection.
     double mOriginalObstacleAngle;
 
-    // Last obstacle angle for consecutive obstacle detections
+    // Switch to check if last action was dealing with an obstacle (trying to turn around it)
     bool mJustDetectedObstacle;
 
+    // Last obstacle angle for consecutive obstacle detections
     double mLastObstacleAngle;
 
 };
