@@ -1,6 +1,7 @@
 # this file is a math utilities file. any functions strictly
 # math related are here so simHandler doesn't get plugged up
 # with too much crap
+# NEEDS TO BE TESTED BC THIS MATH IS NASTY AND IDK IF IT WORKS YET
 import math
 
 # Constants:
@@ -15,9 +16,22 @@ def degreeToRadian(degree, minute = 0): # optional minute arg
 def radianToDegree(radian):
     return radian * 180 / math.pi
 
+# gets change in degrees from one location to another
+def deltaDeg(sim, object_origin, object_dest):
+    olat_deg, olat_min, olon_deg, olon_min = object_dest.get_coords()
+    rlat_deg, rlat_min, rlon_deg, rlon_min = object_origin.get_coords()
+    # gets change in degrees from obejct_origin to object_dest
+    dlat_deg = olat_deg-rlat_deg
+    dlat_min = olat_min - rlat_min
+    dlon_deg = olon_deg - rlon_deg
+    dlon_min = olon_min - rlon_min
+
+    return dlat_deg, dlat_min, dlon_deg, dlon_min
+
 
 def deg2meters(sim, object_origin, object_dest):
     # given an object, calculates the degrees to meters conversion 
+    # may want to use deltaDeg() for this first bit since the code is copypasted
     # between the rover and an object. returns meters
     olat_deg, olat_min, olon_deg, olon_min = object_dest.get_coords()
     rlat_deg, rlat_min, rlon_deg, rlon_min = object_origin.get_coords()
@@ -52,7 +66,3 @@ def meters2deg(sim, distance, angle):
     lat_min = (meters_lat % METER_LAT_DEG) / METER_LAT_MINUTES
 
     return lat_deg, lat_min, lon_deg, lon_min
-
-
-
-

@@ -12,7 +12,7 @@
 # long and unmanagable, which is why I'd like to write the
 # high-level functionality in simHandler.py to make it easier
 # to manage and debug
-from . import simHandler
+from .simHandler import runSimulator
 from rover_common import aiolcm
 from abc import ABC
 import math  # , abstractmethod
@@ -21,7 +21,7 @@ import math  # , abstractmethod
 import asyncio
 from rover_common.aiohelper import run_coroutines
 # from rover_msgs import DanesMsg
-from rover_msgs import (NavStatus, Joystick, GPSetry, AutonState,
+from rover_msgs import (NavStatus, Joystick, GPS, AutonState,
                         Course, Obstacle, TennisBall)
 import mathUtils
 
@@ -65,6 +65,7 @@ class SimulatorMetaClass:
 
         self.JoystickMsg.forward_back = 0
         self.JoystickMsg.left_right = 0
+        self.JoystickMsg.dampen = 0
 
         self.GPSMsg.latitude_deg = 39
         self.GPSMsg.latitude_min = 0
@@ -108,6 +109,7 @@ class SimulatorMetaClass:
         self.JoystickMsg.forward_back = m.forward_back
         self.JoystickMsg.left_right = m.left_right
         self.JoystickMsg.dampen = m.dampen
+        #1-dampen/2
         self.JoystickMsg.kill = m.kill
         self.JoystickMsg.restart = m.restart
 
@@ -157,13 +159,13 @@ class SimulatorMetaClass:
     # identical to the GPS message, minus speed, bc it's a useful
     # object to have internally
     class GPS:
-        def __init__(self, lat0, latm0, lon0, lonm0, bearing):
+        def __init__(self, lat0, latm0, lon0, lonm0, bearing, speed = -999):
             self.lat_deg = lat0
             self.lat_min = latm0
             self.lon_deg = lon0
             self.lon_min = lonm0
             self.bearing = bearing
-            self.speed = -999
+            self.speed = speed
 
     # parent class of sim objects. Has all properties common to all
     # objects
@@ -206,13 +208,7 @@ class SimulatorMetaClass:
             self.speed_translational = speed_trans
             # speed multiplier, 1 if not specified
             self.speed_rotational = speed_rot
-        
-        # takes relative rotation angle
-        def move_rot(self, angle):
-            self.GPS.bearing +=angle
-        
-        def move_trans(self, dist):
-            
+
 
     class TennisBall(SimObj):
         def __init__(self, GPS):  # other properties
@@ -246,10 +242,13 @@ def main():
                    Simulator.publish_GPS(lcm),
                    Simulator.publish_obstacle(lcm),
                    Simulator.publish_tennis_ball(lcm),
-                   simHandler.runSimulator(Simulator))
+                   runSimulator(Simulator))
     # as a general improvement, it may be worth threading all of the
     # lcm-related bruhaha to offload the worst of the performance hits
     # as the sim becomes more complex and computationally intensive
+
+    # time to run this mf'er
+    runSimulator(Simulator)
 
 
 # also necessary for the build system, idk why

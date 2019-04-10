@@ -9,7 +9,7 @@ from . import mathUtils
 def initObjectsOnField(sim):
     startPos = sim.GPS(39, 0, -110, 0, 0)
     field = sim.Field(startPos)  # make field entity and rover
-    rover = sim.Rover(startPos)
+    rover = sim.Rover(startPos, sim.JoystickMsg.dampen, 1, 1)
     return rover, field  # if we init more than this, return a list
     # for future reference, this is where uploaded test cases get init 
 
@@ -72,42 +72,47 @@ def calc_visible(sim, object_list):
                 sim.TennisBallMsg.found = True
                 sim.TennisBallMsg.distance = math.hypot(delta_x, delta_y)
                 sim.TennisBallMsg.bearing = math.atan2(delta_y, delta_x)
-                break
             if isinstance(item, sim.Obstacle):
                 sim.ObstacleMsg.detected = True
                 sim.ObstacleMsg.bearing = calc_move_best_path(sim, object_list, sim.rover, 
                                                               delta_x, delta_y)
-                break
-                # calculates best path away from the obstacle, not bearing to
-
-
+                 # calculates best path away from the obstacle, not bearing to
     # for obj in object_list:
         # rover loc - obj loc = delta loc
         # use some trig and get your results
         # for tennis balls, mark if found
 
-def move_trans(sim, distance):  # method to move translationally
-    # not done, but basically it needs to mvoe and scan at the same time
-    calc_visible(sim, sim.Tennis_Balls)
-    calc_visible(sim, sim.Obstacles)
-            # use bearing to calculate components to add to 
-
-def move_rot(sim, angle):  # method to rotate
-    # input angle must be properly signed
-    while abs(angle) > 2:
-        if angle <= 0:
-            sim.rover.bearing -= 2 * sim.rover.speed_rotational
-            angle -= 2
-        else:
-            sim.rover.bearing += 2 * sim.rover.speed_rotational
-            angle += 2
-    sim.rover.bearing += angle
+# a helper function for move_trans
+def changeRoverPos(sim, deltaDeg):
+    sim.rover.lat_deg = deltaDeg.lat_deg
+    sim.rover.lat_min = deltaDeg.lat_min
+    sim.rover.lon_deg = deltaDeg.lon_deg
+    sim.rover.long_min = deltaDeg.lon_min
 
 
-def move_interpolate(self, angle, distance):
+# move translationally, if distance is specified you move that many meters, 
+# otherwise you move at normal velocity
+def move_trans(sim):  
+    # method to move translationally
+    # uses joystick input to determine speed
+    speed_trans = sim.rover.speed_translational * ((1 - sim.JoystickMsg.dampen) / 2) * sim.JoystickMsg.forward_back
+    deltaDeg = meters2deg(sim, speed_trans, sim.rover.bearing)
+    changeRoverPos(sim, deltaDeg)
+
+
+
+def move_rot(sim):  # method to rotate
+    speed_rot = sim.rover.speed_rotational * ((1 - sim.JoystickMsg.dampen) / 2) * sim.JoystickMsg.left_right
+    sim.rover.bearing += speed_rot
+
+
+
+def move_interpolate(sim, angle, distance):
     pass 
     # would be used to calculate rover moving and turning
-    # at the same time
+    # at the same time, since the rover can move and slightly
+    # turn at the same time on the IRL rover
+    # this is not currently used, but is here for later
 
 async def simulatorOn(sim):
     while True:
@@ -116,6 +121,8 @@ async def simulatorOn(sim):
         else:
             calc_visible(sim, sim.Tennis_Balls)
             calc_visible(sim, sim.Obstacles)
+            move_trans(sim)
+            move_rot(sim)
         await asyncio.sleep(10)
 
 
@@ -128,3 +135,19 @@ async def runSimulator(sim):
         if sim.AutonStateMsg.is_auton is True:
             simulatorOn(sim)
         await asyncio.sleep(10)
+
+# old move trans code
+# if distance is not -999:    
+#         while(distance > 0):
+#             # if it needs to travel less than the displacement from velocity/unit time
+#             if distance <= sim.rover.speed_translational:
+#                 # moves rover remaining distance and changes distance to 0, exiting function
+#                 deltaDeg = meters2deg(sim, distance, sim.rover.bearing)
+#                 changeRoverPos(sim, deltaDeg)
+#                 distance = 0
+#                 return
+#             else:
+#                 deltaDeg = meters2deg(sim, sim.rover.speed_translational, sim.rover.bearing)
+#                 changeRoverPos(sim, deltaDeg)
+#     # moves at rate of velocity, regardless of intended destination
+#     else:

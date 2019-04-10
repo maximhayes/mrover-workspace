@@ -102,6 +102,95 @@
             data:{
                 value: 'You liking the Vue, baby?'
             }
+            import LCMBridge from 'lcm_bridge_client/dist/bridge.js'
+            export default {
+            name: 'Simulator',
+            data () {
+                return {
+                lcm_: null,
+
+                lastServosMessage: {
+                    pan: 0,
+                    tilt: 0
+                },
+
+                odom: {
+                    latitude_deg: 38,
+                    latitude_min: 24.38226,
+                    longitude_deg: -110,
+                    longitude_min: -47.51724,
+                    bearing_deg: 0,
+                    speed: 0
+                },
+
+                connections: {
+                    websocket: false,
+                    lcm: false,
+                    motors: false,
+                    cameras: [false, false, false, false, false, false]
+                },
+
+                nav_status: {
+                    completed_wps: 0,
+                    missed_wps: 0,
+                    total_wps: 0
+                }
+                }
+            },
+
+            methods: {
+                publish: function (channel, payload) {
+                this.lcm_.publish(channel, payload)
+                },
+
+                subscribe: function (channel, callbackFn) {
+                if( (typeof callbackFn !== "function") || (callbackFn.length !== 1)) {
+                    console.error("Callback Function is invalid (should take 1 parameter)")
+                }
+                this.lcm_.subscribe(channel, callbackFn)
+                }
+            },
+
+            created: function () {
+                this.lcm_ = new LCMBridge(
+                'ws://localhost:8020',
+                // Update WebSocket connection state
+                (online) => {
+                    this.lcm_.setHomePage()
+                    this.connections.websocket = online
+                },
+                // Update connection states
+                (online) => {
+                    this.connections.lcm = online[0],
+                    this.connections.cameras = online.slice(1)
+                },
+                // Subscribed LCM message received
+                (msg) => {
+                    if (msg.topic === '/odometry') {
+                    this.odom = msg.message
+                    } else if (msg.topic === '/kill_switch') {
+                    this.connections.motors = !msg.message.killed
+                    } else if (msg.topic === '/debugMessage') {
+                    if (msg['message']['isError']) {
+                        console.error(msg['message']['message'])
+                    } else {
+                        console.log(msg['message']['message'])
+                    }
+                    }
+                },
+                // Subscriptions
+                [
+                    {'topic': '/odometry', 'type': 'Odometry'},
+                    {'topic': '/sensors', 'type': 'Sensors'},
+                    {'topic': '/temperature', 'type': 'Temperature'},
+                    {'topic': '/kill_switch', 'type': 'KillSwitch'},
+                    {'topic': '/camera_servos', 'type': 'CameraServos'},
+                    {'topic': '/encoder', 'type': 'Encoder'},
+                    {'topic': '/nav_status', 'type': 'NavStatus'},
+                    {'topic': '/debugMessage', 'type': 'DebugMessage'}
+                ]
+                )
+
         })
     </script>
 </body> 
