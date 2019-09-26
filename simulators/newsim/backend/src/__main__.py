@@ -66,6 +66,7 @@ class SimulatorMetaClass:
         self.JoystickMsg.forward_back = 0
         self.JoystickMsg.left_right = 0
         self.JoystickMsg.dampen = 0
+        self.JoystickMsg.kill = 0 # lol
 
         self.GPSMsg.latitude_deg = 39
         self.GPSMsg.latitude_min = 0

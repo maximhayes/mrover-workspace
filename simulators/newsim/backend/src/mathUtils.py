@@ -30,7 +30,7 @@ def deltaDeg(sim, object_origin, object_dest):
 
 
 def deg2meters(sim, object_origin, object_dest):
-    # given an object, calculates the degrees to meters conversion 
+    # given an object, calculates the degrees to meters conversion
     # may want to use deltaDeg() for this first bit since the code is copypasted
     # between the rover and an object. returns meters
     olat_deg, olat_min, olon_deg, olon_min = object_dest.get_coords()
@@ -59,10 +59,13 @@ def meters2deg(sim, distance, angle):
     lon_deg_length = 111412.84*math.cos(2*lat_deg)-93.5*math.cos(3*lat_deg) + 0.118*math.cos(5*lat_deg)
     meters_lon = distance * math.sin(angle) # component of meters in the up and down m80
     meters_lat = distance * math.cos(angle) # component of meters in the left and right boyo
-    
+
     lon_deg =  (meters_lon // lon_deg_length)
     lon_min = (meters_lon % lon_deg_length) / lon_deg_length
     lat_deg = (meters_lat // METER_LAT_DEG)
     lat_min = (meters_lat % METER_LAT_DEG) / METER_LAT_MINUTES
 
     return lat_deg, lat_min, lon_deg, lon_min
+
+def calcSpeed():
+    return
