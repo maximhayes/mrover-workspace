@@ -22,8 +22,8 @@ def addObject(sim, obj_struct, obj_type):  # this may be implemented
         sim.Obstacles.append(obj_struct)
     elif obj_type == "waypoint":
         sim.Waypoints.append(obj_struct)
-    elif obj_type == "tennis ball":
-        sim.Tennis_Balls.append(obj_struct)
+    elif obj_type == "post":
+        sim.Posts.append(obj_struct)
     else:
         print("Object passed is not valid")
 
@@ -35,13 +35,13 @@ def removeObject(sim, obj_in):
         if id(item) == id(obj_in):
             sim.Waypoints.remove(obj_in)
             break
-    for item in sim.Tennis_Balls:
+    for item in sim.Posts:
         if id(item) == id(obj_in):
-            sim.Waypoints.remove(obj_in)
+            sim.Posts.remove(obj_in)
             break
     for item in sim.Obstacles:
         if id(item) == id(obj_in):
-            sim.Waypoints.remove(obj_in)
+            sim.Obstacles.remove(obj_in) #was sims.Waypoints... just error?
             break
 
     # debug code
@@ -68,10 +68,10 @@ def calc_visible(sim, object_list):
         if (math.atan2(delta_y, delta_x) < sim.rover.fov / 2 and
             math.hypot(delta_x, delta_y) < sim.rover.cv_thresh):
             # checking if object is within fov and detection distance (cv_thresh)
-            if isinstance(item, sim.TennisBall): # detect which object
-                sim.TennisBallMsg.found = True
-                sim.TennisBallMsg.distance = math.hypot(delta_x, delta_y)
-                sim.TennisBallMsg.bearing = math.atan2(delta_y, delta_x)
+            if isinstance(item, sim.Post): # detect which object
+                sim.PostMsg.found = True
+                sim.PostMsg.distance = math.hypot(delta_x, delta_y)
+                sim.PostMsg.bearing = math.atan2(delta_y, delta_x)
             if isinstance(item, sim.Obstacle):
                 sim.ObstacleMsg.detected = True
                 sim.ObstacleMsg.bearing = calc_move_best_path(sim, object_list, sim.rover, 
@@ -119,7 +119,7 @@ async def simulatorOn(sim):
         if sim.AutonStateMsg.is_auton is not True:
             break
         else:
-            calc_visible(sim, sim.Tennis_Balls)
+            calc_visible(sim, sim.Posts)
             calc_visible(sim, sim.Obstacles)
             move_trans(sim)
             move_rot(sim)

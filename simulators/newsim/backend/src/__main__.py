@@ -40,7 +40,7 @@ class SimulatorMetaClass:
 
         Obstacles = []
         Waypoints = []
-        Tennis_Balls = []
+        Posts = []
 
         # below: class list, one class for each message type
         # published or recieved. instantiate them at the bottom
@@ -54,7 +54,7 @@ class SimulatorMetaClass:
         # self.BearingMsg = Bearing()
         self.GPSMsg = GPS()
         self.ObstacleMsg = Obstacle()
-        self.TennisBallMsg = TennisBall()
+        self.PostMsg = Post()
         self.CourseMsg = Course()
         self.AutonStateMsg = AutonState()
 
@@ -79,9 +79,9 @@ class SimulatorMetaClass:
         self.ObstacleMsg.detected = 0
         self.ObstacleMsg.bearing = 0
 
-        self.TennisBallMsg.found = 0
-        self.TennisBallMsg.bearing = 0
-        self.TennisBallMsg.distance = 0
+        self.PostMsg.found = 0
+        self.PostMsg.bearing = 0
+        self.PostMsg.distance = 0
 
         self.CourseMsg.num_waypoints = 0
         self.CourseMsg.hash = 0
@@ -146,9 +146,9 @@ class SimulatorMetaClass:
             lcm.publish("\obstacle", self.ObstacleMsg.encode())
             await asyncio.sleep(10)
 
-    async def publish_tennis_ball(self, lcm):
+    async def publish_post(self, lcm):
         while True:
-            lcm.publish("\tennis_ball", self.TennisBallMsg.encode())
+            lcm.publish("\tpost", self.PostMsg.encode())
             await asyncio.sleep(10)
 
     # SimObject definitions are below
@@ -211,10 +211,11 @@ class SimulatorMetaClass:
             self.speed_rotational = speed_rot
 
 
-    class TennisBall(SimObj):
-        def __init__(self, GPS):  # other properties
+    class Post(SimObj):
+        def __init__(self, GPS, bearing, pos=[0,-1]):  # other properties
             super().__init__(GPS)
-            self.other_prop = 0
+            self.tag_bearing = bearing
+            self.tag_pos = pos # position of tag on post
 
     class Obstacle(SimObj):
         def __init__(self, GPS):  # other properties
@@ -242,8 +243,9 @@ def main():
                    Simulator.publish_course(lcm),
                    Simulator.publish_GPS(lcm),
                    Simulator.publish_obstacle(lcm),
-                   Simulator.publish_tennis_ball(lcm),
-                   runSimulator(Simulator))
+                   Simulator.publish_post(lcm),
+                   runSimulator(Simulator)) # why is this here if its called down there:
+
     # as a general improvement, it may be worth threading all of the
     # lcm-related bruhaha to offload the worst of the performance hits
     # as the sim becomes more complex and computationally intensive
