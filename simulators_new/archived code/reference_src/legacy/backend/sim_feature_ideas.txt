@@ -1,0 +1,2 @@
+Put a trail behind the rover
+Log position data periodically
