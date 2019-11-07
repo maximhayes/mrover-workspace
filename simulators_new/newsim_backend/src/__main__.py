@@ -1,14 +1,14 @@
-from .simHandler import runSimulator
+# from .simHandler import runSimulator
 from rover_common import aiolcm
-from abc import ABC
+# from abc import ABC
 # import math  # , abstractmethod
 # import threading  # for later for perf improvements
 # import time  # for later, for more accurate information and logging
 import asyncio
 from rover_common.aiohelper import run_coroutines
 # from rover_msgs import DanesMsg
-from rover_msgs import (NavStatus, Joystick, GPS, AutonState,
-                        Course, Obstacle, TennisBall)
+from rover_msgs import Ping, Obstacle
+# NavStatus, Joystick, GPS, AutonState, Course, Obstacle, TennisBall
 # import mathUtils
 
 # 0. Grab from LCM, or whatever intermediary
@@ -56,7 +56,14 @@ class SimulatorMetaClass:
         # of this message definition block
         # use the provided imported classes and dump these later
         # you still need to set all the defaults
+        self.PingMsg = Ping()
+        self.PingMsg.test = 1.0
 
+        self.ObstacleMsg = Obstacle()
+        self.ObstacleMsg.detected = False
+        self.ObstacleMsg.bearing = 0.0
+        self.ObstacleMsg.distance = 0.0
+        """
         self.NavStatusMsg = NavStatus()
         self.JoystickMsg = Joystick()
         # self.GPSMsg = GPS()
@@ -95,12 +102,36 @@ class SimulatorMetaClass:
         self.CourseMsg.waypoints = []
 
         self.AutonStateMsg.is_auton = False
+        """
     # definitions for message processing are below, with callbacks (cb)
     # at the top and publishing at the bottom
     # in this setup, camelCasing denotes a class instance
     # while under_scored_variables indicate a variable within the class
     # to avoid confusion
 
+    def ping_cb(self, channel, msg):
+        m = Ping.decode(msg)
+        self.PingMsg.test = m.test
+        print(m.test)
+
+    def obstacle_cb(self, channel, msg):
+        m = Obstacle.decode(msg)
+        self.ObstacleMsg.detected = m.detected
+        self.ObstacleMsg.bearing = m.bearing
+        self.ObstacleMsg.distance = m.distance
+        print(m.bearing)
+
+    async def publish_ping(self, lcm):
+        while True:
+            lcm.publish("/ping", self.PingMsg.encode())
+            await asyncio.sleep(10)
+
+    async def publish_obstacle(self, lcm):
+        while True:
+            lcm.publish("/obstacle", self.ObstacleMsg.encode())
+            await asyncio.sleep(10)
+
+    """
     def nav_test(self, channel, msg):
         pass
         # define this as per the spec
@@ -158,7 +189,7 @@ class SimulatorMetaClass:
         while True:
             lcm.publish("\tennis_ball", self.TennisBallMsg.encode())
             await asyncio.sleep(10)
-
+    """
     # SimObject definitions are below
     # SimObj is the abstract base class that contains properties
     # common to all objects. define additional simulator objects
@@ -167,13 +198,25 @@ class SimulatorMetaClass:
 
     # identical to the GPS message, minus speed, bc it's a useful
     # object to have internally
+
+    class Ping:
+        def __init__(self, test):
+            self.testdouble = test
+
+    class Obstacle:
+        def __init__(self, detected, bearing, distance):
+            self.detectedbool = detected
+            self.bearingdouble = bearing
+            self.distancedouble = distance
+    """
     class GPS:
-        def __init__(self, lat0, latm0, lon0, lonm0, bearing, speed):
-            self.lat_deg = lat0
-            self.lat_min = latm0
-            self.lon_deg = lon0
-            self.lon_min = lonm0
-            self.bearing = bearing
+        def __init__(self, latitude_deg, latitude_min, longitude_deg,
+                     longitude_min, bearing_deg, speed):
+            self.lat_deg = latitude_deg
+            self.lat_min = latitude_min
+            self.lon_deg = longitude_deg
+            self.lon_min = longitude_min
+            self.bearing = bearing_deg
             self.speed = speed
 
     # parent class of sim objects. Has all properties common to all
@@ -182,11 +225,11 @@ class SimulatorMetaClass:
     class SimObj(ABC):
         # define initial location and other properties
         def __init__(self, GPS):
-            self.lat_deg = GPS.lat0
-            self.lat_min = GPS.latm0
-            self.lon_deg = GPS.lon0
-            self.lon_min = GPS.lonm0
-            self.bearing = GPS.bearing0
+            self.lat_deg = GPS.latitude_deg
+            self.lat_min = GPS.latitude_min
+            self.lon_deg = GPS.longitude_deg
+            self.lon_min = GPS.longitude_min
+            self.bearing = GPS.bearing_deg
             self.shape = 0  # need to create a seed system?
 
         # any methods common to all classes should be defined
@@ -231,6 +274,7 @@ class SimulatorMetaClass:
         def __init__(self, GPS, searchable=0):
             super().__init__(GPS)
             self.search = searchable  # defaults to false if not set
+    """
 
 
 def main():
@@ -241,22 +285,31 @@ def main():
     Simulator = SimulatorMetaClass()
 
     # constantly queries lcm server
-    lcm.subscribe("\nav_state", Simulator.nav_state_cb)
-    lcm.subscribe("\drive_control", Simulator.joystick_cb)
+    lcm.subscribe("/ping", Simulator.ping_cb)
+    lcm.subscribe("/obstacle", Simulator.obstacle_cb)
+    # lcm.subscribe("\nav_state", Simulator.nav_state_cb)
+    # lcm.subscribe("\drive_control", Simulator.joystick_cb)
 
     # creates loop to execute this code repeatedly with the lcm
-    run_coroutines(lcm.loop(), Simulator.publish_auton_state(lcm),
-                   Simulator.publish_course(lcm),
-                   Simulator.publish_GPS(lcm),
-                   Simulator.publish_obstacle(lcm),
-                   Simulator.publish_tennis_ball(lcm),
-                   runSimulator(Simulator))
+    run_coroutines(
+        lcm.loop(),
+        Simulator.publish_ping(lcm),
+        Simulator.publish_obstacle(lcm)
+        # runSimulator(Simulator)
+    )
+    # Simulator.publish_auton_state(lcm),
+    # Simulator.publish_course(lcm),
+    # Simulator.publish_GPS(lcm),
+    # Simulator.publish_obstacle(lcm),
+    # Simulator.publish_tennis_ball(lcm),
+    # runSimulator(Simulator))
+
     # as a general improvement, it may be worth threading all of the
     # lcm-related bruhaha to offload the worst of the performance hits
     # as the sim becomes more complex and computationally intensive
 
     # time to run this mf'er
-    runSimulator(Simulator)
+    # runSimulator(Simulator)
 
 
 # also necessary for the build system, idk why
