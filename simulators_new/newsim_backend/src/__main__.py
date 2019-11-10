@@ -9,25 +9,7 @@ from rover_common.aiohelper import run_coroutines
 # from rover_msgs import DanesMsg
 from rover_msgs import Ping, Obstacle
 # NavStatus, Joystick, GPS, AutonState, Course, Obstacle, TennisBall
-# import mathUtils
-
-# 0. Grab from LCM, or whatever intermediary
-# 1. Detect whether the point is within the radius "r" of the rover's view.
-#   (a) Find distance between rover and point
-#   (b) Compare with FOV range
-# 2. Check if the point is within the FOV angle.
-#   (a) Compute the range using FOV angle and the angle of the rover
-#   (b) Compute the angle of the point
-#   (c) Note the range is continuous,
-#       but contain points greater than 360, or less than 0,
-#       so need to compare the point, and the point + 360 deg
-#       (TODO: Check logic)
-# NOTE: Found boolean is equivalent to setting to distance to -1
-# 3. Export to LCM, or whatever intermediary
-#   (a) ???
-# 4. PROFIT!!!
-
-# Algorithm, LCM
+# from . import mathUtils
 
 
 class SimulatorMetaClass:
@@ -315,42 +297,3 @@ def main():
 # also necessary for the build system, idk why
 if __name__ == "__main__":
     main()
-
-"""
-TODO: Convert to python
-
-Accepts (x1, y1, theta) as the robot's pose,
-and (x2, y2) as the point's location
-Program knows the FOV's angle and range
-
-Step (1): Checks to make sure point is within the radius of the view
-        float distance = sqrt((x1 - x2)*(x1 - x2) +
-        (y1 - y2)*(y1 - y2));
-        if (distance > radius) {
-            return false;
-        }
-
-Step (2): Check to make sure the point is within the angle range
-        float max = theta + fovAngle/2;
-        float min = theta - fovAngle/2;
-        if (x1 == 0) {
-            angle = 0;
-        }
-        else {
-            float angle = atan(y2/x1);
-        }
-        if ((angle < max) || (angle > min)) {
-            return true;
-        }
-        else if ((angle + 180 < max) || (angle + 180 > min)) {
-            return true;
-        }
-        else if ((angle - 180 < max) || (angle - 180 > min)) {
-            return true;
-        }
-        else {
-            return false;
-        }
-        TODO: Make if-else checking behavior more elegant (and correct)
-        once trig function behavior is known
-"""

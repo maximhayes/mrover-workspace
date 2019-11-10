@@ -2,7 +2,84 @@
 import asyncio
 import math
 from . import mathUtils
-# Globals List:
+""" 
+0. Grab from LCM, or whatever intermediary
+1. Detect whether the point is within the radius "r" of the rover's view.
+    (a) Find distance between rover and point
+    (b) Compare with FOV range
+2. Check if the point is within the FOV angle.
+    (a) Compute the range using FOV angle and the angle of the rover
+    (b) Compute the angle of the point
+    (c) Note the range is continuous, 
+        but contain points greater than 360, or less than 0, 
+        so need to compare the point, and the point + 360 deg
+        (TODO: Check logic)
+NOTE: Found boolean is equivalent to setting to distance to -1
+3. Export to LCM, or whatever intermediary
+4. ???
+5. PROFIT!!! 
+"""
+
+xRover = 0.0
+yRover = 0.0
+xWay = 0.0
+yWay = 0.0
+theta = 0.0
+r = 1.0
+fovAngle = 0.0
+
+rover = [xWay, yWay, theta]
+fov = [r, fovAngle]
+rover[0] = math.atan(1/pow(2, 0.5))
+fov[0] = math.atan(-1/pow(2, 0.5))
+waypoint = [xWay, yWay]
+
+def inRadius(xWay, yWay, xRover, yRover):
+    d = math.sqrt(pow(xWay - xRover, 2) + pow(yWay - yRover, 2))
+    if d > r:
+        return False
+    else:
+        return True
+
+"""
+TODO: Convert to python
+
+Accepts (x1, y1, theta) as the robot's pose,
+and (x2, y2) as the point's location
+Program knows the FOV's angle and range
+
+Step (1): Checks to make sure point is within the radius of the view
+        float distance = sqrt((x1 - x2)*(x1 - x2) +
+        (y1 - y2)*(y1 - y2));
+        if (distance > radius) {
+            return false;
+        }
+
+Step (2): Check to make sure the point is within the angle range
+        float max = theta + fovAngle/2;
+        float min = theta - fovAngle/2;
+        if (x1 == 0) {
+            angle = 0;
+        }
+        else {
+            float angle = atan(y2/x1);
+        }
+        if ((angle < max) || (angle > min)) {
+            return true;
+        }
+        else if ((angle + 180 < max) || (angle + 180 > min)) {
+            return true;
+        }
+        else if ((angle - 180 < max) || (angle - 180 > min)) {
+            return true;
+        }
+        else {
+            return false;
+        }
+
+        TODO: Make if-else checking behavior more elegant (and correct)
+        once trig function behavior is known
+"""
 
 
 # contains the initialization code for initial setup of the field
